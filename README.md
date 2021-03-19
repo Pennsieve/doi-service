@@ -15,4 +15,4 @@ There is an integration test suite that runs against the DataCite sandbox API us
 
 ## Releasing
 
-Every merge to `master` pushes a new version of `doi-service-client` to Nexus. The published JAR is versioned with the same Jenkins image tag as the service Docker container.
+Every merge to `main` pushes a new version of `doi-service-client` to Nexus. The published JAR is versioned with the same Jenkins image tag as the service Docker container.
