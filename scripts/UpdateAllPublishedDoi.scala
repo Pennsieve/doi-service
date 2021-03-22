@@ -8,19 +8,19 @@ import akka.stream.Materializer
 import cats.data.EitherT
 import cats.implicits._
 
-import com.blackfynn.discover.client.dataset.DatasetClient._
-import com.blackfynn.discover.client.definitions._
-import com.blackfynn.discover.client.dataset.DatasetClient
-import com.blackfynn.discover.client.search.SearchClient
-import com.blackfynn.doi.clients.{ DataCiteClient, DataCiteClientImpl }
-import com.blackfynn.doi.{ DataCiteClientConfiguration, DataciteException }
-import com.blackfynn.doi.server.definitions.{ CreatorDTO, LicenseDTO}
-import com.blackfynn.doi.logging.DoiLogContext
-import com.blackfynn.doi.models.{Contributor, Creator, DataciteDoi, DataciteError, Description, DoiEvent, DoiState, Rights, Title}
-import com.blackfynn.models.License._
-import com.blackfynn.models.License
-import com.blackfynn.service.utilities.ContextLogger
-import com.blackfynn.service.utilities.SingleHttpResponder
+import com.pennsieve.discover.client.dataset.DatasetClient._
+import com.pennsieve.discover.client.definitions._
+import com.pennsieve.discover.client.dataset.DatasetClient
+import com.pennsieve.discover.client.search.SearchClient
+import com.pennsieve.doi.clients.{ DataCiteClient, DataCiteClientImpl }
+import com.pennsieve.doi.{ DataCiteClientConfiguration, DataciteException }
+import com.pennsieve.doi.server.definitions.{ CreatorDTO, LicenseDTO}
+import com.pennsieve.doi.logging.DoiLogContext
+import com.pennsieve.doi.models.{Contributor, Creator, DataciteDoi, DataciteError, Description, DoiEvent, DoiState, Rights, Title}
+import com.pennsieve.models.License._
+import com.pennsieve.models.License
+import com.pennsieve.service.utilities.ContextLogger
+import com.pennsieve.service.utilities.SingleHttpResponder
 
 import monocle.macros.syntax.lens._
 import io.circe.Json

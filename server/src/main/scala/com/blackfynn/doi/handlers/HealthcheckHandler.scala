@@ -1,10 +1,10 @@
 // Copyright (c) 2021 University of Pennsylvania. All Rights Reserved.
 
-package com.blackfynn.doi.handlers
+package com.pennsieve.doi.handlers
 
 import akka.stream.ActorMaterializer
 
-import com.blackfynn.doi.server.healthcheck.{
+import com.pennsieve.doi.server.healthcheck.{
   HealthcheckHandler => GuardrailHandler,
   HealthcheckResource
 }

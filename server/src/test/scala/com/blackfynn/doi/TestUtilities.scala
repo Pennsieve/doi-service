@@ -1,10 +1,10 @@
 // Copyright (c) 2021 University of Pennsylvania. All Rights Reserved.
 
-package com.blackfynn.doi
+package com.pennsieve.doi
 
-import com.blackfynn.doi.db.DoiMapper
-import com.blackfynn.doi.db.profile.api._
-import com.blackfynn.doi.models.{
+import com.pennsieve.doi.db.DoiMapper
+import com.pennsieve.doi.db.profile.api._
+import com.pennsieve.doi.models.{
   Contributor,
   Creator,
   DataciteDoi,
@@ -12,7 +12,7 @@ import com.blackfynn.doi.models.{
   Doi,
   Rights
 }
-import com.blackfynn.test.AwaitableImplicits
+import com.pennsieve.test.AwaitableImplicits
 
 import scala.concurrent.ExecutionContext
 import scala.util.Random

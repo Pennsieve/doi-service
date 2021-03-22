@@ -1,8 +1,8 @@
 // Copyright (c) 2021 University of Pennsylvania. All Rights Reserved.
 
-package com.blackfynn.doi
+package com.pennsieve.doi
 
-import com.blackfynn.doi.models.DataciteError
+import com.pennsieve.doi.models.DataciteError
 
 case class NoDoiException(doi: String) extends Throwable {
   override def getMessage: String = s"No doi could be found for doi=$doi"

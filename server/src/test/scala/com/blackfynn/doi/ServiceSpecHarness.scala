@@ -1,11 +1,11 @@
 // Copyright (c) 2021 University of Pennsylvania. All Rights Reserved.
 
-package com.blackfynn.doi
+package com.pennsieve.doi
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import com.blackfynn.doi.clients.{ CitationClient, DataCiteClient }
-import com.blackfynn.test.AwaitableImplicits
+import com.pennsieve.doi.clients.{ CitationClient, DataCiteClient }
+import com.pennsieve.test.AwaitableImplicits
 import com.spotify.docker.client.DefaultDockerClient
 import com.spotify.docker.client.exceptions.DockerException
 import com.typesafe.scalalogging.StrictLogging

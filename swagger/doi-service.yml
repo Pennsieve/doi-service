@@ -50,7 +50,7 @@ paths:
           description: Success
           schema:
             type: object
-            x-scala-type: com.blackfynn.doi.models.DoiDTO
+            x-scala-type: com.pennsieve.doi.models.DoiDTO
         401:
           description: Unauthorized
         403:
@@ -97,7 +97,7 @@ paths:
           description: Created
           schema:
             type: object
-            x-scala-type: com.blackfynn.doi.models.DoiDTO
+            x-scala-type: com.pennsieve.doi.models.DoiDTO
         400:
           description: Bad Request
           schema:
@@ -132,7 +132,7 @@ paths:
           description: Success
           schema:
             type: object
-            x-scala-type: com.blackfynn.doi.models.DoiDTO
+            x-scala-type: com.pennsieve.doi.models.DoiDTO
         401:
           description: Unauthorized
         403:
@@ -173,7 +173,7 @@ paths:
           description: Success
           schema:
             type: object
-            x-scala-type: com.blackfynn.doi.models.DoiDTO
+            x-scala-type: com.pennsieve.doi.models.DoiDTO
         400:
           description: Bad Request
           schema:
@@ -213,7 +213,7 @@ paths:
           description: Success
           schema:
             type: object
-            x-scala-type: com.blackfynn.doi.models.DoiDTO
+            x-scala-type: com.pennsieve.doi.models.DoiDTO
         400:
           description: Bad Request
           schema:
@@ -260,7 +260,7 @@ paths:
           description: Success
           schema:
             type: object
-            x-scala-type: com.blackfynn.doi.models.DoiDTO
+            x-scala-type: com.pennsieve.doi.models.DoiDTO
         400:
           description: Bad Request
           schema:

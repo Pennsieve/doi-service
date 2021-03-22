@@ -1,4 +1,4 @@
-ThisBuild / organization := "com.blackfynn"
+ThisBuild / organization := "com.pennsieve"
 ThisBuild / scalaVersion := "2.12.11"
 ThisBuild / scalacOptions ++= Seq(
   "-encoding", "utf-8",
@@ -13,7 +13,6 @@ ThisBuild / scalacOptions ++= Seq(
 
 ThisBuild / resolvers ++= Seq(
   "pennsieve-maven-proxy" at "https://nexus.pennsieve.cc/repository/maven-public",
-  Resolver.url("pennsieve-ivy-proxy", url("https://nexus.pennsieve.cc/repository/ivy-public/"))( Patterns("[organization]/[module]/(scala_[scalaVersion]/)(sbt_[sbtVersion]/)[revision]/[type]s/[artifact](-[classifier]).[ext]") ),
   Resolver.jcenterRepo,
   Resolver.bintrayRepo("commercetools", "maven")
 )
@@ -35,9 +34,9 @@ lazy val akkaCirceVersion        = "0.3.0"
 lazy val akkaHttpVersion         = "10.1.11"
 lazy val akkaVersion             = "2.6.5"
 lazy val circeVersion            = "0.11.0"
-lazy val authMiddlewareVersion   = "4.2.2"
-lazy val serviceUtilitiesVersion = "1.3.4-SNAPSHOT"
-lazy val utilitiesVersion        = "0.1.10-SNAPSHOT"
+lazy val authMiddlewareVersion   = "4.2.3"
+lazy val serviceUtilitiesVersion = "6-2a4488a"
+lazy val utilitiesVersion        = "3-cd7539b"
 lazy val slickVersion            = "3.3.0"
 lazy val slickPgVersion          = "0.17.3"
 lazy val dockerItVersion         = "0.9.7"
@@ -90,8 +89,8 @@ lazy val scripts = project
       "com.beachape" %% "enumeratum-circe" % enumeratumVersion,
       "com.typesafe.akka" %% "akka-http" % akkaHttpVersion,
       "com.typesafe.akka" %% "akka-stream" % akkaVersion,
-      "com.blackfynn" %% "discover-service-client" % discoverServiceClientVersion,
-      "com.blackfynn" %% "service-utilities" % serviceUtilitiesVersion,
+      "com.pennsieve" %% "discover-service-client" % discoverServiceClientVersion,
+      "com.pennsieve" %% "service-utilities" % serviceUtilitiesVersion,
 
     )
   )
@@ -116,9 +115,9 @@ lazy val server = project
     Integration / testOptions := Seq(Tests.Filter(_.toLowerCase.contains("integration"))),
 
       libraryDependencies ++= Seq(
-      "com.blackfynn" %% "service-utilities" % serviceUtilitiesVersion,
-      "com.blackfynn" %% "utilities" % utilitiesVersion,
-      "com.blackfynn" %% "auth-middleware" % authMiddlewareVersion,
+      "com.pennsieve" %% "service-utilities" % serviceUtilitiesVersion,
+      "com.pennsieve" %% "utilities" % utilitiesVersion,
+      "com.pennsieve" %% "auth-middleware" % authMiddlewareVersion,
 
       "com.github.pureconfig" %% "pureconfig" % "0.10.2",
       "com.iheart" %% "ficus" % "1.4.0",
@@ -144,13 +143,13 @@ lazy val server = project
       "org.scalatest" %% "scalatest"% "3.0.5" % Test,
       "com.whisk" %% "docker-testkit-scalatest" % dockerItVersion % Test,
       "com.whisk" %% "docker-testkit-impl-spotify" % dockerItVersion % Test,
-      "com.blackfynn" %% "utilities" % utilitiesVersion % Test classifier "tests",
+      "com.pennsieve" %% "utilities" % utilitiesVersion % Test classifier "tests",
       "com.typesafe.akka" %% "akka-testkit" % akkaVersion % Test,
       "com.typesafe.akka" %% "akka-http-testkit" % akkaHttpVersion % Test,
       "com.amazonaws" % "aws-java-sdk-ssm" % "1.11.714" % Test,
     ),
     guardrailTasks in Compile := List(
-      Server(file("swagger/doi-service.yml"), pkg="com.blackfynn.doi.server")
+      Server(file("swagger/doi-service.yml"), pkg="com.pennsieve.doi.server")
     ),
     dockerfile in docker := {
       val artifact: File = assembly.value
@@ -174,7 +173,7 @@ lazy val server = project
     imageNames in docker := Seq(
       ImageName("pennsieve/doi-service:latest")
     ),
-    coverageExcludedPackages := "com.blackfynn.graphview.client\\..*;",
+    coverageExcludedPackages := "com.pennsieve.doi\\..*;",
     coverageMinimum := 0, // TODO
     coverageFailOnMinimum := true,
   )
@@ -199,7 +198,7 @@ lazy val client = project
     },
     publishMavenStyle := true,
     guardrailTasks in Compile := List(
-      Client(file("./swagger/doi-service.yml"), pkg="com.blackfynn.doi.client")
+      Client(file("./swagger/doi-service.yml"), pkg="com.pennsieve.doi.client")
     ),
   )
 

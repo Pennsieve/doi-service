@@ -1,14 +1,14 @@
 // Copyright (c) 2021 University of Pennsylvania. All Rights Reserved.
 
-package com.blackfynn.doi
+package com.pennsieve.doi
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
-import com.blackfynn.doi.handlers.{ DoiHandler, HealthcheckHandler }
-import com.blackfynn.service.utilities.MigrationRunner
+import com.pennsieve.doi.handlers.{ DoiHandler, HealthcheckHandler }
+import com.pennsieve.service.utilities.MigrationRunner
 import com.typesafe.scalalogging.StrictLogging
 import pureconfig.generic.auto._
 

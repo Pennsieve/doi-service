@@ -1,12 +1,12 @@
 // Copyright (c) 2021 University of Pennsylvania. All Rights Reserved.
 
-package com.blackfynn.doi
+package com.pennsieve.doi
 
 import java.time.OffsetDateTime
 
-import com.blackfynn.doi.clients.DataCiteClient
-import com.blackfynn.doi.logging.DoiLogContext
-import com.blackfynn.doi.models.{
+import com.pennsieve.doi.clients.DataCiteClient
+import com.pennsieve.doi.logging.DoiLogContext
+import com.pennsieve.doi.models.{
   Contributor,
   Creator,
   DataciteDoi,
@@ -18,7 +18,7 @@ import com.blackfynn.doi.models.{
   Rights,
   Title
 }
-import com.blackfynn.doi.server.definitions._
+import com.pennsieve.doi.server.definitions._
 import monocle.macros.syntax.lens._
 import scala.concurrent.Future
 

@@ -1,10 +1,10 @@
 // Copyright (c) 2021 University of Pennsylvania. All Rights Reserved.
 
-package com.blackfynn.doi.db
+package com.pennsieve.doi.db
 
-import com.blackfynn.doi.models.Doi
-import com.blackfynn.doi.{ NoDoiException, ServiceSpecHarness, TestUtilities }
-import com.blackfynn.test.AwaitableImplicits
+import com.pennsieve.doi.models.Doi
+import com.pennsieve.doi.{ NoDoiException, ServiceSpecHarness, TestUtilities }
+import com.pennsieve.test.AwaitableImplicits
 import org.scalatest.{ Matchers, WordSpec }
 
 class DoiMapperSpec

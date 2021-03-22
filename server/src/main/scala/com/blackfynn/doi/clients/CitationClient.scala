@@ -1,21 +1,21 @@
 // Copyright (c) 2021 University of Pennsylvania. All Rights Reserved.
 
-package com.blackfynn.doi.clients
+package com.pennsieve.doi.clients
 
-import com.blackfynn.doi.logging.DoiLogContext
-import com.blackfynn.doi.models.Citation
+import com.pennsieve.doi.logging.DoiLogContext
+import com.pennsieve.doi.models.Citation
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.{ Location, RawHeader }
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.Materializer
 import akka.http.scaladsl.HttpExt
-import com.blackfynn.doi.{
+import com.pennsieve.doi.{
   CitationClientConfiguration,
   CitationException,
   CitationNotFound
 }
-import com.blackfynn.service.utilities.ContextLogger
-import com.blackfynn.doi.server.definitions._
+import com.pennsieve.service.utilities.ContextLogger
+import com.pennsieve.doi.server.definitions._
 import monocle.macros.syntax.lens._
 
 import io.circe.Json

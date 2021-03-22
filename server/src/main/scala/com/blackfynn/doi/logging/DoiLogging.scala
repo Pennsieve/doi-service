@@ -1,8 +1,8 @@
 // Copyright (c) 2021 University of Pennsylvania. All Rights Reserved.
 
-package com.blackfynn.doi.logging
+package com.pennsieve.doi.logging
 
-import com.blackfynn.service.utilities.LogContext
+import com.pennsieve.service.utilities.LogContext
 
 final case class DoiLogContext(
   organizationId: Option[Int] = None,

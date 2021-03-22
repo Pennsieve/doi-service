@@ -1,17 +1,17 @@
 // Copyright (c) 2021 University of Pennsylvania. All Rights Reserved.
 
-package com.blackfynn.doi.handlers
+package com.pennsieve.doi.handlers
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.server.Route
 import akka.stream.ActorMaterializer
 import cats.data._
 import cats.implicits._
-import com.blackfynn.auth.middleware.Jwt
-import com.blackfynn.auth.middleware.AkkaDirective.authenticateJwt
-import com.blackfynn.doi.Authenticator.withAuthorization
-import com.blackfynn.doi.db.{ CitationCacheMapper, DoiMapper }
-import com.blackfynn.doi.{
+import com.pennsieve.auth.middleware.Jwt
+import com.pennsieve.auth.middleware.AkkaDirective.authenticateJwt
+import com.pennsieve.doi.Authenticator.withAuthorization
+import com.pennsieve.doi.db.{ CitationCacheMapper, DoiMapper }
+import com.pennsieve.doi.{
   CitationNotFound,
   DuplicateDoiException,
   ForbiddenException,
@@ -19,13 +19,13 @@ import com.blackfynn.doi.{
   NoDoiException,
   Ports
 }
-import com.blackfynn.doi.db.profile.api._
-import com.blackfynn.doi.logging.logRequestAndResponse
-import com.blackfynn.doi.logging.DoiLogContext
-import com.blackfynn.doi.models.{ Citation, DataciteDoi, Doi, DoiDTO }
-import com.blackfynn.doi.server.definitions
-import com.blackfynn.doi.server.definitions._
-import com.blackfynn.doi.server.doi.{
+import com.pennsieve.doi.db.profile.api._
+import com.pennsieve.doi.logging.logRequestAndResponse
+import com.pennsieve.doi.logging.DoiLogContext
+import com.pennsieve.doi.models.{ Citation, DataciteDoi, Doi, DoiDTO }
+import com.pennsieve.doi.server.definitions
+import com.pennsieve.doi.server.definitions._
+import com.pennsieve.doi.server.doi.{
   DoiHandler => GuardrailHandler,
   DoiResource => GuardrailResource
 }

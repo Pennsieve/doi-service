@@ -1,6 +1,6 @@
 // Copyright (c) 2021 University of Pennsylvania. All Rights Reserved.
 
-package com.blackfynn.doi
+package com.pennsieve.doi
 
 import akka.http.scaladsl.server.RouteResult
 import akka.http.scaladsl.server.Directive
