@@ -1,19 +1,19 @@
 // Copyright (c) 2021 University of Pennsylvania. All Rights Reserved.
 
-package com.blackfynn.doi
+package com.pennsieve.doi
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
-import com.blackfynn.auth.middleware.Jwt
-import com.blackfynn.doi.clients.{
+import com.pennsieve.auth.middleware.Jwt
+import com.pennsieve.doi.clients.{
   CitationClient,
   CitationClientImpl,
   DataCiteClient,
   DataCiteClientImpl
 }
-import com.blackfynn.doi.db.profile.api._
-import com.blackfynn.service.utilities.ContextLogger
+import com.pennsieve.doi.db.profile.api._
+import com.pennsieve.service.utilities.ContextLogger
 import com.zaxxer.hikari.HikariDataSource
 import slick.util.AsyncExecutor
 

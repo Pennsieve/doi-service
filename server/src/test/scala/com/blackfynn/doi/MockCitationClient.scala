@@ -1,11 +1,11 @@
 // Copyright (c) 2021 University of Pennsylvania. All Rights Reserved.
 
-package com.blackfynn.doi
+package com.pennsieve.doi
 
-import com.blackfynn.doi.models.Citation
-import com.blackfynn.doi.clients.CitationClient
-import com.blackfynn.doi.logging.DoiLogContext
-import com.blackfynn.doi.server.definitions._
+import com.pennsieve.doi.models.Citation
+import com.pennsieve.doi.clients.CitationClient
+import com.pennsieve.doi.logging.DoiLogContext
+import com.pennsieve.doi.server.definitions._
 import monocle.macros.syntax.lens._
 import scala.concurrent.Future
 

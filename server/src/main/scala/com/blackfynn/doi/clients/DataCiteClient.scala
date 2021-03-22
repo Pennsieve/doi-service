@@ -1,11 +1,11 @@
 // Copyright (c) 2021 University of Pennsylvania. All Rights Reserved.
 
-package com.blackfynn.doi.clients
+package com.pennsieve.doi.clients
 
 import java.time.OffsetDateTime
 
-import com.blackfynn.doi.logging.DoiLogContext
-import com.blackfynn.doi.models.{
+import com.pennsieve.doi.logging.DoiLogContext
+import com.pennsieve.doi.models.{
   Contributor,
   Creator,
   DataciteDoi,
@@ -27,9 +27,9 @@ import akka.http.scaladsl.model.headers.{
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.Materializer
 import akka.http.scaladsl.HttpExt
-import com.blackfynn.doi.{ DataCiteClientConfiguration, DataciteException }
-import com.blackfynn.service.utilities.ContextLogger
-import com.blackfynn.doi.server.definitions._
+import com.pennsieve.doi.{ DataCiteClientConfiguration, DataciteException }
+import com.pennsieve.service.utilities.ContextLogger
+import com.pennsieve.doi.server.definitions._
 import monocle.macros.syntax.lens._
 
 import io.circe.Json

@@ -1,6 +1,6 @@
 // Copyright (c) 2021 University of Pennsylvania. All Rights Reserved.
 
-package com.blackfynn.doi.models
+package com.pennsieve.doi.models
 
 import io.circe.generic.semiauto._
 import io.circe.{ Decoder, Encoder }

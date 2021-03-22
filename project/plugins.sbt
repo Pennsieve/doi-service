@@ -6,8 +6,8 @@ resolvers ++= Seq(
 credentials += Credentials(
   "Sonatype Nexus Repository Manager",
   "nexus.pennsieve.cc",
-  sys.env.getOrElse("PENNSIEVE_NEXUS_USER", "pennsieveci"),
-  sys.env.getOrElse("PENNSIEVE_NEXUS_PW", "")
+  sys.env("PENNSIEVE_NEXUS_USER"),
+  sys.env("PENNSIEVE_NEXUS_PW")
 )
 
 addSbtPlugin("com.twilio" % "sbt-guardrail" % "0.43.0")

@@ -1,6 +1,6 @@
 // Copyright (c) 2021 University of Pennsylvania. All Rights Reserved.
 
-package com.blackfynn.doi.db
+package com.pennsieve.doi.db
 
 import com.github.tminglei.slickpg._
 

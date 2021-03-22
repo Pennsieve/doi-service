@@ -1,16 +1,16 @@
 // Copyright (c) 2021 University of Pennsylvania. All Rights Reserved.
 
-package com.blackfynn.doi.handlers
+package com.pennsieve.doi.handlers
 
 import akka.http.scaladsl.model.headers.{ Authorization, OAuth2BearerToken }
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.testkit.ScalatestRouteTest
-import com.blackfynn.auth.middleware.Jwt
-import com.blackfynn.doi.Authenticator.generateServiceToken
-import com.blackfynn.doi.client.definitions._
-import com.blackfynn.doi.db.profile.api._
+import com.pennsieve.auth.middleware.Jwt
+import com.pennsieve.doi.Authenticator.generateServiceToken
+import com.pennsieve.doi.client.definitions._
+import com.pennsieve.doi.db.profile.api._
 import io.circe.parser.decode
-import com.blackfynn.doi.client.doi.{
+import com.pennsieve.doi.client.doi.{
   CreateDraftDoiResponse,
   DoiClient,
   GetCitationsResponse,
@@ -20,8 +20,8 @@ import com.blackfynn.doi.client.doi.{
   PublishDoiResponse,
   ReviseDoiResponse
 }
-import com.blackfynn.doi.db.{ CitationCacheMapper, DoiMapper }
-import com.blackfynn.doi.models.{
+import com.pennsieve.doi.db.{ CitationCacheMapper, DoiMapper }
+import com.pennsieve.doi.models.{
   Contributor,
   Creator,
   DataciteDoi,
@@ -40,8 +40,8 @@ import com.blackfynn.doi.models.{
   Title,
   Type
 }
-import com.blackfynn.doi.{ ServiceSpecHarness, TestUtilities }
-import com.blackfynn.test.AwaitableImplicits
+import com.pennsieve.doi.{ ServiceSpecHarness, TestUtilities }
+import com.pennsieve.test.AwaitableImplicits
 import io.circe.syntax._
 import org.scalatest.{ BeforeAndAfterEach, Matchers, WordSpec }
 import java.time.{ OffsetDateTime, ZoneId }
@@ -203,7 +203,7 @@ class DoiHandlerSpec
 
       val authToken = List(Authorization(OAuth2BearerToken(token.value)))
 
-      val request = com.blackfynn.doi.client.definitions.CreateDraftDoiRequest(
+      val request = com.pennsieve.doi.client.definitions.CreateDraftDoiRequest(
         title = Some("this is a test"),
         creators = Some(IndexedSeq(CreatorDTO("Jon", "Adams", Some("Q")))),
         publicationYear = Some(2019),
@@ -244,7 +244,7 @@ class DoiHandlerSpec
 
       val authToken = List(Authorization(OAuth2BearerToken(token.value)))
 
-      val request = com.blackfynn.doi.client.definitions.CreateDraftDoiRequest(
+      val request = com.pennsieve.doi.client.definitions.CreateDraftDoiRequest(
         title = Some("this is a test"),
         creators = Some(IndexedSeq(CreatorDTO("Jon", "Adams", Some("Q")))),
         publicationYear = Some(2019),
@@ -284,7 +284,7 @@ class DoiHandlerSpec
 
       val authToken = List(Authorization(OAuth2BearerToken(token.value)))
 
-      val request = com.blackfynn.doi.client.definitions.CreateDraftDoiRequest(
+      val request = com.pennsieve.doi.client.definitions.CreateDraftDoiRequest(
         title = Some("this is a test"),
         creators = Some(IndexedSeq(CreatorDTO("Jon", "Adams", Some("Q")))),
         publicationYear = Some(2019),
@@ -326,7 +326,7 @@ class DoiHandlerSpec
 
       TestUtilities.createDoi(ports.db)(doi = "test/abcd-1234")
 
-      val request = com.blackfynn.doi.client.definitions.CreateDraftDoiRequest(
+      val request = com.pennsieve.doi.client.definitions.CreateDraftDoiRequest(
         title = Some("this is a test"),
         creators = Some(IndexedSeq(CreatorDTO("Jon", "Adams", Some("Q")))),
         publicationYear = Some(2019),
@@ -449,7 +449,7 @@ class DoiHandlerSpec
 
       val authToken = List(Authorization(OAuth2BearerToken(token.value)))
 
-      val body = com.blackfynn.doi.client.definitions.PublishDoiRequest(
+      val body = com.pennsieve.doi.client.definitions.PublishDoiRequest(
         title = "this is a test",
         creators = IndexedSeq(
           CreatorDTO("Salvatore", "Bonno", Some("P")),
@@ -539,7 +539,7 @@ class DoiHandlerSpec
 
       val authToken = List(Authorization(OAuth2BearerToken(token.value)))
 
-      val body = com.blackfynn.doi.client.definitions.PublishDoiRequest(
+      val body = com.pennsieve.doi.client.definitions.PublishDoiRequest(
         title = "this is a test",
         creators = IndexedSeq(
           CreatorDTO("Salvatore", "Bonno", Some("P")),
@@ -574,7 +574,7 @@ class DoiHandlerSpec
         client
           .reviseDoi(
             internalDoi.doi,
-            com.blackfynn.doi.client.definitions.ReviseDoiRequest(
+            com.pennsieve.doi.client.definitions.ReviseDoiRequest(
               title = "Updated Title",
               creators = IndexedSeq(
                 CreatorDTO("Salvatore", "Bonno", Some("P")),
@@ -665,7 +665,7 @@ class DoiHandlerSpec
         client
           .reviseDoi(
             internalDoi.doi,
-            com.blackfynn.doi.client.definitions.ReviseDoiRequest(
+            com.pennsieve.doi.client.definitions.ReviseDoiRequest(
               title = "Updated Title",
               creators = IndexedSeq(CreatorDTO("Jon", "Adams", Some("Q"))),
               version = Some(1),
@@ -699,7 +699,7 @@ class DoiHandlerSpec
 
       val authToken = List(Authorization(OAuth2BearerToken(token.value)))
 
-      val body = com.blackfynn.doi.client.definitions.PublishDoiRequest(
+      val body = com.pennsieve.doi.client.definitions.PublishDoiRequest(
         title = "this is a test",
         creators = IndexedSeq(CreatorDTO("Jon", "Adams", Some("Q"))),
         publicationYear = 2019,

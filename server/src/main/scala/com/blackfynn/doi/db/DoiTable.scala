@@ -1,16 +1,16 @@
 // Copyright (c) 2021 University of Pennsylvania. All Rights Reserved.
 
-package com.blackfynn.doi.db
+package com.pennsieve.doi.db
 
 import java.time.{ OffsetDateTime, ZoneId }
 
-import com.blackfynn.doi.{
+import com.pennsieve.doi.{
   DuplicateDoiException,
   NoDatasetDoiException,
   NoDoiException
 }
-import com.blackfynn.doi.db.profile.api._
-import com.blackfynn.doi.models._
+import com.pennsieve.doi.db.profile.api._
+import com.pennsieve.doi.models._
 import org.postgresql.util.PSQLException
 
 import scala.concurrent.ExecutionContext

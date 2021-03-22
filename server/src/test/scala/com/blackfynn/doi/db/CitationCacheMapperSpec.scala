@@ -1,10 +1,10 @@
 // Copyright (c) 2021 University of Pennsylvania. All Rights Reserved.
 
-package com.blackfynn.doi.db
+package com.pennsieve.doi.db
 
-import com.blackfynn.doi.db.profile.api._
-import com.blackfynn.doi.ServiceSpecHarness
-import com.blackfynn.test.AwaitableImplicits
+import com.pennsieve.doi.db.profile.api._
+import com.pennsieve.doi.ServiceSpecHarness
+import com.pennsieve.test.AwaitableImplicits
 import org.scalatest.{ Matchers, WordSpec }
 
 class CitationCacheMapperSpec

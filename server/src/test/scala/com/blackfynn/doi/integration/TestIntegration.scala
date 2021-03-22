@@ -1,15 +1,15 @@
 // Copyright (c) 2021 University of Pennsylvania. All Rights Reserved.
 
-package com.blackfynn.doi.integration
+package com.pennsieve.doi.integration
 
 import akka.http.scaladsl.model.headers.{ Authorization, OAuth2BearerToken }
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagementClientBuilder
 import com.amazonaws.services.simplesystemsmanagement.model.GetParameterRequest
-import com.blackfynn.auth.middleware.Jwt
-import com.blackfynn.doi.Authenticator.generateServiceToken
-import com.blackfynn.doi.client.doi.{
+import com.pennsieve.auth.middleware.Jwt
+import com.pennsieve.doi.Authenticator.generateServiceToken
+import com.pennsieve.doi.client.doi.{
   CreateDraftDoiResponse,
   DoiClient,
   GetCitationsResponse,
@@ -19,10 +19,10 @@ import com.blackfynn.doi.client.doi.{
   PublishDoiResponse,
   ReviseDoiResponse
 }
-import com.blackfynn.doi.client.definitions._
-import com.blackfynn.doi.clients.{ DataCiteClient, DataCiteClientImpl }
-import com.blackfynn.doi.db.DoiMapper
-import com.blackfynn.doi.models.{
+import com.pennsieve.doi.client.definitions._
+import com.pennsieve.doi.clients.{ DataCiteClient, DataCiteClientImpl }
+import com.pennsieve.doi.db.DoiMapper
+import com.pennsieve.doi.models.{
   Creator,
   DataciteDoi,
   Doi,
@@ -31,7 +31,7 @@ import com.blackfynn.doi.models.{
   DoiState,
   RelationType
 }
-import com.blackfynn.doi.{
+import com.pennsieve.doi.{
   Config,
   DataCiteClientConfiguration,
   JwtConfig,
@@ -39,8 +39,8 @@ import com.blackfynn.doi.{
   ServiceSpecHarness,
   TestUtilities
 }
-import com.blackfynn.doi.handlers.DoiHandler
-import com.blackfynn.test.AwaitableImplicits
+import com.pennsieve.doi.handlers.DoiHandler
+import com.pennsieve.test.AwaitableImplicits
 import monocle.macros.syntax.lens._
 import io.circe.syntax._
 import org.scalatest.{ BeforeAndAfterEach, Inside, Matchers, WordSpec }

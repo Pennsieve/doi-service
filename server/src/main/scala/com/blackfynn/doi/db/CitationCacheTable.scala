@@ -1,11 +1,11 @@
 // Copyright (c) 2021 University of Pennsylvania. All Rights Reserved.
 
-package com.blackfynn.doi.db
+package com.pennsieve.doi.db
 
 import java.time.OffsetDateTime
 
-import com.blackfynn.doi.db.profile.api._
-import com.blackfynn.doi.models._
+import com.pennsieve.doi.db.profile.api._
+import com.pennsieve.doi.models._
 import org.postgresql.util.PSQLException
 import slick.dbio.Effect
 
