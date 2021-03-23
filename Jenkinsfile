@@ -45,7 +45,7 @@ node("executor") {
         }
     }
 
-    if (["master"].contains(env.BRANCH_NAME)) {
+    if (env.BRANCH_NAME == 'main') {
         stage("Publish Jars") {
             withCredentials([pennsieveNexusCreds]) {
                 sh "$sbt common/publish"
