@@ -164,7 +164,7 @@ object RelationType extends Enum[RelationType] with CirceEnum[RelationType] {
   case object Describes extends RelationType("Describes")
   case object Documents extends RelationType("Documents")
 //  case object HasMetadata extends RelationType("HasMetadata")
-//  case object IsCitedBy extends RelationType("IsCitedBy")
+  case object IsCitedBy extends RelationType("IsCitedBy")
 //  case object IsCompiledBy extends RelationType("IsCompiledBy")
 //  case object IsContinuedBy extends RelationType("IsContinuedBy")
   case object IsDerivedFrom extends RelationType("IsDerivedFrom")

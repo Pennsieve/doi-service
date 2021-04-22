@@ -43,7 +43,7 @@ lazy val dockerItVersion         = "0.9.7"
 lazy val logbackVersion          = "1.2.3"
 lazy val enumeratumVersion       = "1.5.13"
 lazy val monocleVersion          = "2.0.0"
-lazy val discoverServiceClientVersion = "355-b2641e1"
+lazy val discoverServiceClientVersion = "20-83899a7"
 
 
 lazy val common = project
