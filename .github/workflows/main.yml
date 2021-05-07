@@ -14,4 +14,4 @@ jobs:
            
           # OPTIONAL CONFIG, use if necessary
           oas-file-path: './swagger/doi-service.yml'
-          # api-version: 'v1.0.0'
+          api-version: 'v1.0.0'
