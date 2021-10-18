@@ -206,6 +206,7 @@ class DoiHandler(
                 creators = body.creators.toList,
                 publicationYear = body.publicationYear,
                 url = body.url,
+                publisher = body.publisher,
                 version = body.version,
                 description = body.description,
                 licenses = body.licenses.map(_.toList),

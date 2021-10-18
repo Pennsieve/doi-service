@@ -397,6 +397,8 @@ definitions:
         format: int32
       url:
         type: string
+      publisher:
+        type: string
       owner:
         type: object
         $ref: '#/definitions/CreatorDTO'

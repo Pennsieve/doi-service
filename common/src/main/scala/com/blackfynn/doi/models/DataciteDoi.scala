@@ -138,6 +138,12 @@ object Title {
   implicit val encoder: Encoder[Title] = deriveEncoder
 }
 
+case class Publisher(publisher: String)
+object Publisher {
+  implicit val decoder: Decoder[Publisher] = deriveDecoder
+  implicit val encoder: Encoder[Publisher] = deriveEncoder
+}
+
 case class Type(resourceTypeGeneral: String)
 object Type {
   implicit val decoder: Decoder[Type] = deriveDecoder
@@ -301,6 +307,7 @@ object DataciteDoi {
     rightsList: List[Rights],
     relatedIdentifiers: List[RelatedIdentifier],
     url: Option[String] = None,
+    publisher: Option[String] = Some(defaultPublisher),
     state: DoiState = defaultState,
     event: Option[DoiEvent] = None,
     mode: String = defaultMode
@@ -308,6 +315,7 @@ object DataciteDoi {
     val doiTitles = List(Title(title))
     val doiType = Type(defaultDoiResourceType)
     val doiDate = publicationYear.map(year => List(DoiDate(year.toString)))
+    val defPublisher = publisher.getOrElse(defaultPublisher)
 
     DataciteDoi(
       DoiData(
@@ -316,7 +324,7 @@ object DataciteDoi {
           doi = doi,
           creators = creators,
           titles = doiTitles,
-          publisher = defaultPublisher,
+          publisher = defPublisher,
           publicationYear = publicationYear,
           version = version,
           types = doiType,

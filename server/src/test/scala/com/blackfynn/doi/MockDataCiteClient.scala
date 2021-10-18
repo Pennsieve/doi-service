@@ -50,7 +50,8 @@ class MockDataCiteClient() extends DataCiteClient {
       testDescription,
       rightsList = testRights,
       relatedIdentifiers = List.empty,
-      owner = testDoiContributors
+      owner = testDoiContributors,
+      publisher = Some("Pennsieve Discover")
     )
 
   override def createDoi(
@@ -86,6 +87,7 @@ class MockDataCiteClient() extends DataCiteClient {
     creators: List[CreatorDTO],
     publicationYear: Int,
     url: String,
+    publisher: Option[String],
     version: Option[Int],
     description: Option[String],
     licenses: Option[List[LicenseDTO]],
@@ -115,6 +117,7 @@ class MockDataCiteClient() extends DataCiteClient {
         },
         relatedIdentifiers = List.empty,
         url = Some(url),
+        publisher = publisher,
         state = DoiState.Findable,
         event = Some(DoiEvent.Publish),
         mode = "edit"

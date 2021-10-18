@@ -69,6 +69,7 @@ trait DataCiteClient {
     creators: List[CreatorDTO],
     publicationYear: Int,
     url: String,
+    publisher: Option[String],
     version: Option[Int],
     description: Option[String],
     licenses: Option[List[LicenseDTO]],
@@ -199,6 +200,7 @@ class DataCiteClientImpl(
     creators: List[CreatorDTO],
     publicationYear: Int,
     url: String,
+    publisher: Option[String],
     version: Option[Int],
     description: Option[String],
     licenses: Option[List[LicenseDTO]],
@@ -232,6 +234,7 @@ class DataCiteClientImpl(
       Some(publicationYear),
       version,
       url = Some(url),
+      publisher = publisher,
       descriptions = Some(descriptions),
       owner = owner.map(
         o => Contributor(o.firstName, o.lastName, o.middleInitial, o.orcid)
@@ -319,7 +322,6 @@ class DataCiteClientImpl(
             },
             descriptions = Some(descriptions),
             version = version,
-            publisher = DataciteDoi.defaultPublisher,
             event = None,
             mode = Some("edit"),
             contributors = owner

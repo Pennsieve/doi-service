@@ -433,7 +433,8 @@ class DoiHandlerSpec
   }
 
   "PUT /doi/:id/publish" should {
-    "mark a DOI as Findable" in {
+
+    "Select Pennsieve Discover as default Publisher when not specifically defined" in {
       val organizationId = 2
       val datasetId = 5
 
@@ -450,7 +451,7 @@ class DoiHandlerSpec
       val authToken = List(Authorization(OAuth2BearerToken(token.value)))
 
       val body = com.pennsieve.doi.client.definitions.PublishDoiRequest(
-        title = "this is a test",
+        title = "this is a test without identified publisher",
         creators = IndexedSeq(
           CreatorDTO("Salvatore", "Bonno", Some("P")),
           CreatorDTO("Cherilyn", "Sarkisian")
@@ -489,10 +490,11 @@ class DoiHandlerSpec
           Creator("Salvatore", "Bonno", Some("P"), None),
           Creator("Cherilyn", "Sarkisian", None, None)
         ),
-        "this is a test",
+        "this is a test without identified publisher",
         Some(2019),
         state = DoiState.Findable,
         url = Some("https://www.url.com"),
+        publisher = Some("Pennsieve Discover"),
         version = Some(1),
         descriptions = Some(
           List(
@@ -519,6 +521,98 @@ class DoiHandlerSpec
         DoiDTO.apply(internalDoi, expectedDataciteDoi)
 
       response shouldBe PublishDoiResponse.OK(expectedResponse.asJson)
+      expectedResponse.publisher
+    }
+
+    "mark a DOI as Findable" in {
+      val organizationId = 2
+      val datasetId = 5
+
+      val internalDoi =
+        TestUtilities.createDoi(ports.db)(organizationId, datasetId)
+
+      val token: Jwt.Token =
+        generateServiceToken(
+          ports.jwt,
+          organizationId = organizationId,
+          datasetId = datasetId
+        )
+
+      val authToken = List(Authorization(OAuth2BearerToken(token.value)))
+
+      val body = com.pennsieve.doi.client.definitions.PublishDoiRequest(
+        title = "this is a test",
+        creators = IndexedSeq(
+          CreatorDTO("Salvatore", "Bonno", Some("P")),
+          CreatorDTO("Cherilyn", "Sarkisian")
+        ),
+        publicationYear = 2019,
+        url = "https://www.url.com",
+        version = Some(1),
+        licenses = Some(
+          IndexedSeq(
+            LicenseDTO(
+              "Apache 2.0",
+              "https://spdx.org/licenses/Apache-2.0.json"
+            )
+          )
+        ),
+        owner = Some(CreatorDTO("Cherilyn", "Sarkisian")),
+        description = Some("Description of the dataset"),
+        publisher = Some("Random Organization"),
+        collections = Some(IndexedSeq(CollectionDTO("Collection Title", 1))),
+        externalPublications = Some(
+          IndexedSeq(
+            ExternalPublicationDTO("10.1117/12.911373", Some("IsSourceOf"))
+          )
+        )
+      )
+
+      val response =
+        client
+          .publishDoi(internalDoi.doi, body, authToken)
+          .awaitFinite()
+          .right
+          .get
+
+      val expectedDataciteDoi = DataciteDoi(
+        internalDoi.doi,
+        List(
+          Creator("Salvatore", "Bonno", Some("P"), None),
+          Creator("Cherilyn", "Sarkisian", None, None)
+        ),
+        "this is a test",
+        Some(2019),
+        state = DoiState.Findable,
+        url = Some("https://www.url.com"),
+        publisher = Some("Random Organization"),
+        version = Some(1),
+        descriptions = Some(
+          List(
+            Description("Description of the dataset"),
+            Description("Collection Title", "SeriesInformation")
+          )
+        ),
+        rightsList = List(
+          Rights(
+            "Apache 2.0",
+            Some("https://spdx.org/licenses/Apache-2.0.json")
+          )
+        ),
+        relatedIdentifiers = List(
+          RelatedIdentifier(
+            relatedIdentifier = "10.1117/12.911373",
+            relationType = RelationType.Describes
+          )
+        ),
+        owner = Some(Contributor("Cherilyn", "Sarkisian", None))
+      )
+
+      val expectedResponse: DoiDTO =
+        DoiDTO.apply(internalDoi, expectedDataciteDoi)
+
+      response shouldBe PublishDoiResponse.OK(expectedResponse.asJson)
+      expectedResponse.publisher
     }
   }
 
@@ -892,7 +986,7 @@ class DoiHandlerSpec
                     "title": "Quantified Morphology of the Human Vagus Nerve with Anti-Claudin-1"
                 }
             ],
-            "publisher": "Blackfynn Discover",
+            "publisher": "Pennsieve Discover",
             "container": {},
             "publicationYear": 2020,
             "subjects": [],
@@ -1056,7 +1150,7 @@ class DoiHandlerSpec
                 "Quantified Morphology of the Human Vagus Nerve with Anti-Claudin-1"
               )
             ),
-            publisher = "Blackfynn Discover",
+            publisher = "Pennsieve Discover",
             publicationYear = Some(2020),
             version = Some(1),
             types = Type("Dataset"),
