@@ -10,60 +10,39 @@ pip install datacite
 pip install requests
 import requests
 
-#Process is correct, but for some reason the returned doi are wrong (don't correspond to Pennsive or SPARC dois)
+url = "https://api.pennsieve.io/discover/search/datasets?limit=150&offset=0&organizationId=367&orderBy=relevance&orderDirection=desc"
+headers = {"Accept": "application/json"}
 
-#there are 624 DOI records to migrate, so have them all appear on one page
-url = "https://api.datacite.org/repositories/bf.discover/dois?page[size]=630"
+response = requests.request("GET", url, headers=headers)
 
-headers = {"Accept": "application/vnd.api+json"}
-
-response = requests.request("GET",url,headers=headers)
-
-#prints the json object as a list
 print(response.text)
 
 #Retrieving DOIs with SPARC as the publisher
 import json
 import re
 
-response_str = response.text
-
 # Transform json input to python dictionary
-input_dict = json.loads(response_str)
+input_dict = json.loads(response.text)['datasets']
 
 print(type(input_dict))
 
-# Filter by publisher with list comprehensions
-#ERROR: String indicies must be integers? Above indicates that it is a dictionary (perhaps more nested than json examples indicate)
-output_dict = [x for x in input_dict if x["publisher"] == "SPARC Consortium"]
-
 #updating the URLS of the DOI JSON objects
-url =""
-doi = ""
-for i in output_dict:
-  #original url
-  url = i["url"]
+for i in input_dict:
   #doi identifier
   doi = i["doi"]
   #URL for PUT request
   url_fetch = "https://api.datacite.org/dois/{}".format(doi)
-  id = ""
-  version = ""
+  id = i['id']
+  version = i['version']
   
-  #retrieving id and version from original url
-  x = re.search('datasets/(.+?)/version', url)
-  if x:
-    id = x.group(1)
-  y = re.search('/version(.+?)', url)
-  if y:
-    version = y.group(1)
-
-  #
-  payload = "{\"data\":{\"attributes\":{\"identifiers\":[{}],\"url\":\"https://sparc.science/datasets/{}/version/{}\"}}}".format(id,version)
+  payload = {}
+  payload['data'] = {}
+  payload['data']['attributes'] = { 'publisher': 'SPARC Consortium', 'url': "https://sparc.science/datasets/{}/version/{}".format(id, version) }
+  
   headers = {
     "Content-Type": "application/vnd.api+json",
     #"Authorization": "Basic MTIzNDoyMjEy"
   }
   #sends updated url (Authorization may be needed in header
-  response = requests.request("PUT", url_fetch, data=payload, headers=headers,auth=('BR.DISCOVER','K5Q_*0koOHdV'))
+  response = requests.request("PUT", url_fetch, data=json.dumps(payload), headers=headers,auth=('BF.DISCOVER','K5Q_*0koOHdV'))
   print(response.text)
