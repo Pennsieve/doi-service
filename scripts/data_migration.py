@@ -1,4 +1,4 @@
-#####SCRIPT IS NOT YET FUNCTIONAL, DO NOT RUN!
+#!/usr/bin/env python3
 
 #Script for updating the remaining SPARC datasets DOI URLs which are still pointing to a pennsieve location
 
@@ -6,9 +6,13 @@
 #example of DataCite DOI JSON object: https://api.datacite.org/dois/application/vnd.datacite.datacite+json/10.26275/9ffg-482d
 #BF DataCIte Repository: https://doi.datacite.org/repositories/bf.discover
 
-pip install datacite
-pip install requests
+# Install the below packages before executing:
+#   pip install datacite
+#   pip install requests
+
 import requests
+import json
+import re
 
 url = "https://api.pennsieve.io/discover/search/datasets?limit=150&offset=0&organizationId=367&orderBy=relevance&orderDirection=desc"
 headers = {"Accept": "application/json"}
@@ -16,10 +20,6 @@ headers = {"Accept": "application/json"}
 response = requests.request("GET", url, headers=headers)
 
 print(response.text)
-
-#Retrieving DOIs with SPARC as the publisher
-import json
-import re
 
 # Transform json input to python dictionary
 input_dict = json.loads(response.text)['datasets']
