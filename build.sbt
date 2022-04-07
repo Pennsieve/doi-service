@@ -75,6 +75,7 @@ lazy val common = project
 
 lazy val scripts = project
   .enablePlugins(AutomateHeaderPlugin)
+  .disablePlugins(ScoverageSbtPlugin)
   .dependsOn(server)
   .settings(
     name := "doi-service-scripts",
