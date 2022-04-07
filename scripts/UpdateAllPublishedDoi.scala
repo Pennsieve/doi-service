@@ -4,32 +4,44 @@ import akka.http.scaladsl.model.headers.{ Authorization, OAuth2BearerToken }
 import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
 import akka.stream.Materializer
-
 import cats.data.EitherT
 import cats.implicits._
-
 import com.pennsieve.discover.client.dataset.DatasetClient._
 import com.pennsieve.discover.client.definitions._
 import com.pennsieve.discover.client.dataset.DatasetClient
 import com.pennsieve.discover.client.search.SearchClient
 import com.pennsieve.doi.clients.{ DataCiteClient, DataCiteClientImpl }
 import com.pennsieve.doi.{ DataCiteClientConfiguration, DataciteException }
-import com.pennsieve.doi.server.definitions.{ CreatorDTO, LicenseDTO}
+import com.pennsieve.doi.server.definitions.{
+  CollectionDTO,
+  CreatorDTO,
+  ExternalPublicationDTO,
+  LicenseDTO
+}
 import com.pennsieve.doi.logging.DoiLogContext
-import com.pennsieve.doi.models.{Contributor, Creator, DataciteDoi, DataciteError, Description, DoiEvent, DoiState, Rights, Title}
+import com.pennsieve.doi.models.{
+  Contributor,
+  Creator,
+  DataciteDoi,
+  DataciteError,
+  Description,
+  DoiEvent,
+  DoiState,
+  Rights,
+  Title
+}
 import com.pennsieve.models.License._
 import com.pennsieve.models.License
 import com.pennsieve.service.utilities.ContextLogger
 import com.pennsieve.service.utilities.SingleHttpResponder
-
 import monocle.macros.syntax.lens._
 import io.circe.Json
 import io.circe.syntax._
 
+import java.time.{ OffsetDateTime, ZoneId }
 import scala.concurrent.duration._
-import scala.concurrent.{Await, ExecutionContext, Future}
-
-import scala.util.{Failure, Success, Try}
+import scala.concurrent.{ Await, ExecutionContext, Future }
+import scala.util.{ Failure, Success, Try }
 
 sealed trait CoreError extends Exception
 
@@ -47,7 +59,8 @@ object UpdateAllPublishedDoi extends App {
   implicit val materializer: ActorMaterializer = ActorMaterializer()
   implicit val executionContext: ExecutionContext = system.dispatcher
 
-  private def handleGuardrailError(): Either[Throwable, HttpResponse] => Future[CoreError] =
+  private def handleGuardrailError(
+  ): Either[Throwable, HttpResponse] => Future[CoreError] =
     _.fold(
       error => Future.successful(DiscoverError(error.getMessage)),
       resp =>
@@ -56,16 +69,35 @@ object UpdateAllPublishedDoi extends App {
         }
     )
 
-  private def toCreatorDTO(firstName: String,
-                           middleInitial: Option[String],
-                             lastName: String,
-                             orcid: Option[String]): CreatorDTO= {
-      CreatorDTO(firstName, lastName, middleInitial, orcid)
+  private def toCreatorDTO(
+    firstName: String,
+    middleInitial: Option[String],
+    lastName: String,
+    orcid: Option[String]
+  ): CreatorDTO = {
+    CreatorDTO(firstName, lastName, middleInitial, orcid)
+  }
+
+  private def toCollectionDTO(
+    discoverCollection: PublicCollectionDTO
+  ): CollectionDTO = {
+    CollectionDTO(discoverCollection.name, discoverCollection.id)
+  }
+
+  private def toExternalPublicationDTO(
+    discoverExternalPub: PublicExternalPublicationDTO
+  ): ExternalPublicationDTO = {
+    ExternalPublicationDTO(
+      discoverExternalPub.doi,
+      Some(discoverExternalPub.relationshipType.entryName)
+    )
   }
 
   if (args.length != 6) {
     println("usage:")
-    println("UpdateAllPublishedDoi dryRun discoverHost dataciteUsername datacitePassword dataciteApiUrl datacitePrefix")
+    println(
+      "UpdateAllPublishedDoi dryRun discoverHost dataciteUsername datacitePassword dataciteApiUrl datacitePrefix"
+    )
   } else {
     val dryRun = Try(args(0).toBoolean).getOrElse(true)
     val discoverHost = args(1)
@@ -80,15 +112,19 @@ object UpdateAllPublishedDoi extends App {
     }
 
     val dataCiteClient: DataCiteClient =
-      new DataCiteClientImpl(Http(), DataCiteClientConfiguration(
-        username = dataciteUsername,
-        password = datacitePassword,
-        apiUrl = dataciteApiUrl,
-        pennsievePrefix = datacitePrefix)
+      new DataCiteClientImpl(
+        Http(),
+        DataCiteClientConfiguration(
+          username = dataciteUsername,
+          password = datacitePassword,
+          apiUrl = dataciteApiUrl,
+          pennsievePrefix = datacitePrefix
+        )
       )
 
     val res = for {
-      datasets <- datasetClient.getDatasets(limit = Some(1000))
+      datasets <- datasetClient
+        .getDatasets(limit = Some(1000))
         .leftSemiflatMap(handleGuardrailError())
         .flatMap {
           _.fold[EitherT[Future, CoreError, DatasetsPage]](
@@ -98,45 +134,59 @@ object UpdateAllPublishedDoi extends App {
           )
         }
 
-
     } yield datasets
 
     val datasetPage = Await.result(res.value, 3.minutes).right.get
 
-    datasetPage.datasets.map {
-
-      dataset: PublicDatasetDTO => {
+    datasetPage.datasets.map { dataset: PublicDatasetDTO =>
+      {
         var a = 0
         for (a <- 1 to dataset.version) {
 
-          val datasetVersion = Await.result(datasetClient.getDatasetVersion(dataset.id, a)
-            .leftSemiflatMap(handleGuardrailError())
-            .flatMap {
-              _.fold[EitherT[Future, CoreError, PublicDatasetDTO]](
-                handleOK = response => EitherT.pure(response),
-                handleGone = msg => EitherT.leftT(DiscoverIgnorableError("Unpublished")),
-                handleNotFound = msg => EitherT.leftT(DiscoverError(msg))
-              )
-            }.value, 3.minutes)
+          val datasetVersion = Await.result(
+            datasetClient
+              .getDatasetVersion(dataset.id, a)
+              .leftSemiflatMap(handleGuardrailError())
+              .flatMap {
+                _.fold[EitherT[Future, CoreError, PublicDatasetDTO]](
+                  handleOK = response => EitherT.pure(response),
+                  handleGone =
+                    msg => EitherT.leftT(DiscoverIgnorableError("Unpublished")),
+                  handleNotFound = msg => EitherT.leftT(DiscoverError(msg))
+                )
+              }
+              .value,
+            3.minutes
+          )
 
           datasetVersion match {
             case Left(e: DiscoverIgnorableError) => {
-              println(s"dataset #${dataset.id}, version #${a} not available\n\tReason: ${e.getMessage}")
+              println(
+                s"dataset #${dataset.id}, version #${a} not available\n\tReason: ${e.getMessage}"
+              )
             }
             case Left(e) => {
-              throw new DiscoverError(s"dataset #${dataset.id}, version #${a} not available\n\tReason: ${e.getMessage}")
+              throw new DiscoverError(
+                s"dataset #${dataset.id}, version #${a} not available\n\tReason: ${e.getMessage}"
+              )
             }
             case Right(dsV) => {
 
-              val owner = toCreatorDTO(dsV.ownerFirstName, None, dsV.ownerLastName, Some(dsV.ownerOrcid))
-              val creators = dsV.contributors.map {
-                c => toCreatorDTO(c.firstName, c.middleInitial, c.lastName, c.orcid)
+              val owner = toCreatorDTO(
+                dsV.ownerFirstName,
+                None,
+                dsV.ownerLastName,
+                Some(dsV.ownerOrcid)
+              )
+              val creators = dsV.contributors.map { c =>
+                toCreatorDTO(c.firstName, c.middleInitial, c.lastName, c.orcid)
               }
 
               implicit val logContext = DoiLogContext(doi = Some(dsV.doi))
 
               if (dryRun) {
-                val dataciteDoi = Await.result(dataCiteClient.getDoi(dsV.doi), 3.minutes)
+                val dataciteDoi =
+                  Await.result(dataCiteClient.getDoi(dsV.doi), 3.minutes)
 
                 val requestBody = dataciteDoi
                   .lens(_.data.attributes)
@@ -144,32 +194,69 @@ object UpdateAllPublishedDoi extends App {
                     _.copy(
                       titles = List(Title(dsV.name)),
                       creators = creators.map { c =>
-                        Creator(c.givenName, c.familyName, c.orcid)
+                        Creator(
+                          firstName = c.firstName,
+                          lastName = c.lastName,
+                          middleInitial = None,
+                          orcid = c.orcid
+                        )
                       }.toList,
                       descriptions = Some(List(Description(dsV.description))),
                       version = Some(dsV.version),
                       publisher = DataciteDoi.defaultPublisher,
                       event = None,
                       mode = Some("edit"),
-                      contributors = Some(List(Contributor(owner.givenName, owner.familyName, owner.orcid))),
-                      rightsList = Some(List(Rights(dsV.license.entryName, License.licenseUri.get(dsV.license))))
+                      contributors = Some(
+                        List(
+                          Contributor(
+                            owner.firstName,
+                            owner.lastName,
+                            owner.orcid
+                          )
+                        )
+                      ),
+                      rightsList = Some(
+                        List(
+                          Rights(
+                            dsV.license.entryName,
+                            License.licenseUri.get(dsV.license)
+                          )
+                        )
+                      )
                     )
                   )
 
-                println(s"mocking call to update the doi for dataset #${dataset.id}, version#${a}")
+                println(
+                  s"mocking call to update the doi for dataset #${dataset.id}, version#${a}"
+                )
                 println(s"requestBody: ${requestBody}")
 
               } else {
-
-                Await.result(dataCiteClient.reviseDoi(
-                  doi = dsV.doi,
-                  title = dsV.name,
-                  creators = creators.toList,
-                  version = Some(dsV.version),
-                  description = Some(dsV.description),
-                  licenses = Some(List(LicenseDTO(dsV.license.entryName, License.licenseUri.get(dsV.license).getOrElse("")))),
-                  owner = Some(owner)
-                ), 3.minutes)
+                val now: OffsetDateTime = OffsetDateTime.now(ZoneId.of("UTC"))
+                Await.result(
+                  dataCiteClient.reviseDoi(
+                    doi = dsV.doi,
+                    title = dsV.name,
+                    creators = creators.toList,
+                    version = Some(dsV.version),
+                    description = Some(dsV.description),
+                    licenses = Some(
+                      List(
+                        LicenseDTO(
+                          dsV.license.entryName,
+                          License.licenseUri.get(dsV.license).getOrElse("")
+                        )
+                      )
+                    ),
+                    owner = Some(owner),
+                    collections =
+                      dsV.collections.map(_.toList.map(toCollectionDTO)),
+                    externalPublications = dsV.externalPublications
+                      .map(_.toList.map(toExternalPublicationDTO)),
+                    Some(now)
+                  ),
+                  3.minutes
+                )
               }
             }
           }

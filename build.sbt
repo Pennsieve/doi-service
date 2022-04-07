@@ -204,4 +204,4 @@ lazy val client = project
 
 
 lazy val root = (project in file("."))
-  .aggregate(common, server, client)
+  .aggregate(common, server, client, scripts)
