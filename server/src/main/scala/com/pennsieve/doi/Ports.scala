@@ -4,7 +4,6 @@ package com.pennsieve.doi
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
-import akka.stream.ActorMaterializer
 import com.pennsieve.auth.middleware.Jwt
 import com.pennsieve.doi.clients.{
   CitationClient,
@@ -23,8 +22,7 @@ class Ports(
   val config: Config
 )(implicit
   system: ActorSystem,
-  executionContext: ExecutionContext,
-  materializer: ActorMaterializer
+  executionContext: ExecutionContext
 ) {
 
   val jwt: Jwt.Config = new Jwt.Config {

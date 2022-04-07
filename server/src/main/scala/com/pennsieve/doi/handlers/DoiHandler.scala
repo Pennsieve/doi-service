@@ -4,7 +4,6 @@ package com.pennsieve.doi.handlers
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.server.Route
-import akka.stream.ActorMaterializer
 import cats.data._
 import cats.implicits._
 import com.pennsieve.auth.middleware.Jwt
@@ -431,7 +430,6 @@ object DoiHandler {
     ports: Ports
   )(implicit
     system: ActorSystem,
-    materializer: ActorMaterializer,
     executionContext: ExecutionContext
   ): Route = {
     logRequestAndResponse(ports) {

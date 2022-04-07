@@ -6,7 +6,6 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.Directives._
-import akka.stream.ActorMaterializer
 import com.pennsieve.doi.handlers.{ DoiHandler, HealthcheckHandler }
 import com.pennsieve.service.utilities.MigrationRunner
 import com.typesafe.scalalogging.StrictLogging
@@ -37,7 +36,6 @@ object Server extends App with StrictLogging {
   val config: Config = pureconfig.loadConfigOrThrow[Config]
 
   implicit val system: ActorSystem = ActorSystem("doi-service")
-  implicit val materializer: ActorMaterializer = ActorMaterializer()
   implicit val executionContext: ExecutionContext = system.dispatcher
 
   implicit val ports: Ports = new Ports(config)

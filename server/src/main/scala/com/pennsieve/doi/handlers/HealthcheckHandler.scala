@@ -2,11 +2,10 @@
 
 package com.pennsieve.doi.handlers
 
-import akka.stream.ActorMaterializer
-
+import akka.actor.ActorSystem
 import com.pennsieve.doi.server.healthcheck.{
-  HealthcheckHandler => GuardrailHandler,
-  HealthcheckResource
+  HealthcheckResource,
+  HealthcheckHandler => GuardrailHandler
 }
 
 import scala.concurrent.Future
@@ -24,6 +23,6 @@ class HealthcheckHandler extends GuardrailHandler {
 object HealthcheckHandler {
   def routes(
     implicit
-    materializer: ActorMaterializer
+    system: ActorSystem
   ) = HealthcheckResource.routes(new HealthcheckHandler)
 }
