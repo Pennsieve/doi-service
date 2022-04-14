@@ -13,37 +13,20 @@ import com.pennsieve.doi.client.doi.{
   CreateDraftDoiResponse,
   DoiClient,
   GetCitationsResponse,
-  GetDoiResponse,
   GetLatestDoiResponse,
   HideDoiResponse,
   PublishDoiResponse,
   ReviseDoiResponse
 }
 import com.pennsieve.doi.client.definitions._
-import com.pennsieve.doi.clients.{ DataCiteClient, DataCiteClientImpl }
-import com.pennsieve.doi.db.DoiMapper
-import com.pennsieve.doi.models.{
-  Creator,
-  DataciteDoi,
-  Doi,
-  DoiDTO,
-  DoiEvent,
-  DoiState,
-  RelationType
-}
-import com.pennsieve.doi.{
-  Config,
-  DataCiteClientConfiguration,
-  JwtConfig,
-  Ports,
-  ServiceSpecHarness,
-  TestUtilities
-}
+import com.pennsieve.doi.models.{ DoiDTO, DoiState }
+import com.pennsieve.doi.{ Config, Ports, ServiceSpecHarness }
 import com.pennsieve.doi.handlers.DoiHandler
 import com.pennsieve.test.AwaitableImplicits
 import monocle.macros.syntax.lens._
-import io.circe.syntax._
 import org.scalatest.{ BeforeAndAfterEach, Inside, Matchers, WordSpec }
+
+import scala.concurrent.ExecutionContext
 
 /**
   * Integration test that runs against the DataCite test API using the non-prod
@@ -157,9 +140,6 @@ class IntegrationSpec
       val created: DoiDTO = createResponse
         .asInstanceOf[CreateDraftDoiResponse.Created]
         .value
-        .as[DoiDTO]
-        .right
-        .get
 
       created should have(
         'organizationId (organizationId),
@@ -179,8 +159,8 @@ class IntegrationSpec
             created.doi,
             PublishDoiRequest(
               title = "Integration Test DOI",
-              creators = IndexedSeq(
-                CreatorDTO("Jon", "Adams", Some("Q"), None) //Some("0000-0003-0837-7120")
+              creators = Vector(
+                CreatorDto("Jon", "Adams", Some("Q"), None) //Some("0000-0003-0837-7120")
               ),
               publicationYear = 2020,
               version = Some(1),
@@ -190,13 +170,11 @@ class IntegrationSpec
               url =
                 s"https://discover.pennsieve.net/test/integration/${created.doi}",
               licenses = Some(
-                IndexedSeq(
-                  LicenseDTO("MIT", "https://spdx.org/licenses/MIT.json")
-                )
+                Vector(LicenseDto("MIT", "https://spdx.org/licenses/MIT.json"))
               ),
               externalPublications = Some(
-                IndexedSeq(
-                  ExternalPublicationDTO(
+                Vector(
+                  ExternalPublicationDto(
                     "10.26275/t6j6-77pu",
                     Some("IsSourceOf")
                   )
@@ -212,9 +190,6 @@ class IntegrationSpec
       val published: DoiDTO = publishResponse
         .asInstanceOf[PublishDoiResponse.OK]
         .value
-        .as[DoiDTO]
-        .right
-        .get
 
       published should have(
         'organizationId (organizationId),
@@ -238,8 +213,8 @@ class IntegrationSpec
             created.doi,
             ReviseDoiRequest(
               title = "Revised DOI",
-              creators = IndexedSeq(
-                CreatorDTO(
+              creators = Vector(
+                CreatorDto(
                   "Jon",
                   "Adams",
                   Some("Q"),
@@ -248,8 +223,8 @@ class IntegrationSpec
               ),
               version = Some(1),
               externalPublications = Some(
-                IndexedSeq(
-                  ExternalPublicationDTO(
+                Vector(
+                  ExternalPublicationDto(
                     "10.26275/v62f-qd4v",
                     Some("IsSourceOf")
                   )
@@ -271,9 +246,6 @@ class IntegrationSpec
         .get
         .asInstanceOf[GetLatestDoiResponse.OK]
         .value
-        .as[DoiDTO]
-        .right
-        .get
 
       revised should have(
         'organizationId (organizationId),
@@ -307,9 +279,6 @@ class IntegrationSpec
         .get
         .asInstanceOf[GetLatestDoiResponse.OK]
         .value
-        .as[DoiDTO]
-        .right
-        .get
 
       hidden should have(
         'organizationId (organizationId),
@@ -351,14 +320,14 @@ class IntegrationSpec
         .value
 
       citation should contain theSameElementsAs List(
-        CitationDTO(
+        CitationDto(
           status = 200,
           doi = "10.1073/pnas.74.12.5463",
           citation = Some(
             "Sanger, F., Nicklen, S., & Coulson, A. R. (1977). DNA sequencing with chain-terminating inhibitors. Proceedings of the National Academy of Sciences, 74(12), 5463–5467. https://doi.org/10.1073/pnas.74.12.5463"
           )
         ),
-        CitationDTO(status = 404, doi = "10.1073/MISSING-DOI", citation = None)
+        CitationDto(status = 404, doi = "10.1073/MISSING-DOI", citation = None)
       )
     }
   }

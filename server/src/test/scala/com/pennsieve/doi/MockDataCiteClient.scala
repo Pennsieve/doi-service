@@ -3,7 +3,6 @@
 package com.pennsieve.doi
 
 import java.time.OffsetDateTime
-
 import com.pennsieve.doi.clients.DataCiteClient
 import com.pennsieve.doi.logging.DoiLogContext
 import com.pennsieve.doi.models.{
@@ -13,13 +12,12 @@ import com.pennsieve.doi.models.{
   Description,
   DoiEvent,
   DoiState,
-  RelatedIdentifier,
-  RelationType,
   Rights,
   Title
 }
 import com.pennsieve.doi.server.definitions._
 import monocle.macros.syntax.lens._
+
 import scala.concurrent.Future
 
 class MockDataCiteClient() extends DataCiteClient {
@@ -57,12 +55,12 @@ class MockDataCiteClient() extends DataCiteClient {
   override def createDoi(
     doiSuffix: String,
     title: String,
-    creators: List[CreatorDTO],
+    creators: List[CreatorDto],
     publicationYear: Option[Int],
     version: Option[Int],
     description: Option[String],
-    licenses: Option[List[LicenseDTO]],
-    owner: Option[CreatorDTO]
+    licenses: Option[List[LicenseDto]],
+    owner: Option[CreatorDto]
   )(implicit
     logContext: DoiLogContext
   ): Future[DataciteDoi] =
@@ -84,16 +82,16 @@ class MockDataCiteClient() extends DataCiteClient {
   override def publishDoi(
     doi: String,
     title: String,
-    creators: List[CreatorDTO],
+    creators: List[CreatorDto],
     publicationYear: Int,
     url: String,
     publisher: Option[String],
     version: Option[Int],
     description: Option[String],
-    licenses: Option[List[LicenseDTO]],
-    owner: Option[CreatorDTO],
-    collections: Option[List[CollectionDTO]],
-    externalPublications: Option[List[ExternalPublicationDTO]]
+    licenses: Option[List[LicenseDto]],
+    owner: Option[CreatorDto],
+    collections: Option[List[CollectionDto]],
+    externalPublications: Option[List[ExternalPublicationDto]]
   )(implicit
     logContext: DoiLogContext
   ): Future[DataciteDoi] = {
@@ -112,7 +110,7 @@ class MockDataCiteClient() extends DataCiteClient {
             o => Contributor(o.firstName, o.lastName, o.middleInitial, o.orcid)
           ),
         descriptions = description.map(d => List(Description(d))),
-        rightsList = licenses.getOrElse(List[LicenseDTO]()).map { l =>
+        rightsList = licenses.getOrElse(List[LicenseDto]()).map { l =>
           Rights(l.license, Some(l.licenseUri))
         },
         relatedIdentifiers = List.empty,
@@ -128,13 +126,13 @@ class MockDataCiteClient() extends DataCiteClient {
   override def reviseDoi(
     doi: String,
     title: String,
-    creators: List[CreatorDTO],
+    creators: List[CreatorDto],
     version: Option[Int],
     description: Option[String],
-    licenses: Option[List[LicenseDTO]],
-    owner: Option[CreatorDTO],
-    collections: Option[List[CollectionDTO]],
-    externalPublications: Option[List[ExternalPublicationDTO]],
+    licenses: Option[List[LicenseDto]],
+    owner: Option[CreatorDto],
+    collections: Option[List[CollectionDto]],
+    externalPublications: Option[List[ExternalPublicationDto]],
     updated: Option[OffsetDateTime]
   )(implicit
     logContext: DoiLogContext
@@ -164,7 +162,7 @@ class MockDataCiteClient() extends DataCiteClient {
                   )
               ),
             descriptions = description.map(d => List(Description(d))),
-            rightsList = Some(licenses.getOrElse(List[LicenseDTO]()).map { l =>
+            rightsList = Some(licenses.getOrElse(List[LicenseDto]()).map { l =>
               Rights(l.license, Some(l.licenseUri))
 
             }),

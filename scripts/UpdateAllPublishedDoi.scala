@@ -13,10 +13,10 @@ import com.pennsieve.discover.client.search.SearchClient
 import com.pennsieve.doi.clients.{ DataCiteClient, DataCiteClientImpl }
 import com.pennsieve.doi.{ DataCiteClientConfiguration, DataciteException }
 import com.pennsieve.doi.server.definitions.{
-  CollectionDTO,
-  CreatorDTO,
-  ExternalPublicationDTO,
-  LicenseDTO
+  CollectionDto,
+  CreatorDto,
+  ExternalPublicationDto,
+  LicenseDto
 }
 import com.pennsieve.doi.logging.DoiLogContext
 import com.pennsieve.doi.models.{
@@ -56,7 +56,6 @@ case class DiscoverIgnorableError(message: String) extends CoreError {
 object UpdateAllPublishedDoi extends App {
 
   implicit val system: ActorSystem = ActorSystem("doi-service-script")
-  implicit val materializer: ActorMaterializer = ActorMaterializer()
   implicit val executionContext: ExecutionContext = system.dispatcher
 
   private def handleGuardrailError(
@@ -69,25 +68,25 @@ object UpdateAllPublishedDoi extends App {
         }
     )
 
-  private def toCreatorDTO(
+  private def toCreatorDto(
     firstName: String,
     middleInitial: Option[String],
     lastName: String,
     orcid: Option[String]
-  ): CreatorDTO = {
-    CreatorDTO(firstName, lastName, middleInitial, orcid)
+  ): CreatorDto = {
+    CreatorDto(firstName, lastName, middleInitial, orcid)
   }
 
-  private def toCollectionDTO(
+  private def toCollectionDto(
     discoverCollection: PublicCollectionDTO
-  ): CollectionDTO = {
-    CollectionDTO(discoverCollection.name, discoverCollection.id)
+  ): CollectionDto = {
+    CollectionDto(discoverCollection.name, discoverCollection.id)
   }
 
-  private def toExternalPublicationDTO(
+  private def toExternalPublicationDto(
     discoverExternalPub: PublicExternalPublicationDTO
-  ): ExternalPublicationDTO = {
-    ExternalPublicationDTO(
+  ): ExternalPublicationDto = {
+    ExternalPublicationDto(
       discoverExternalPub.doi,
       Some(discoverExternalPub.relationshipType.entryName)
     )
@@ -172,14 +171,14 @@ object UpdateAllPublishedDoi extends App {
             }
             case Right(dsV) => {
 
-              val owner = toCreatorDTO(
+              val owner = toCreatorDto(
                 dsV.ownerFirstName,
                 None,
                 dsV.ownerLastName,
                 Some(dsV.ownerOrcid)
               )
               val creators = dsV.contributors.map { c =>
-                toCreatorDTO(c.firstName, c.middleInitial, c.lastName, c.orcid)
+                toCreatorDto(c.firstName, c.middleInitial, c.lastName, c.orcid)
               }
 
               implicit val logContext = DoiLogContext(doi = Some(dsV.doi))
@@ -242,7 +241,7 @@ object UpdateAllPublishedDoi extends App {
                     description = Some(dsV.description),
                     licenses = Some(
                       List(
-                        LicenseDTO(
+                        LicenseDto(
                           dsV.license.entryName,
                           License.licenseUri.get(dsV.license).getOrElse("")
                         )
@@ -250,9 +249,9 @@ object UpdateAllPublishedDoi extends App {
                     ),
                     owner = Some(owner),
                     collections =
-                      dsV.collections.map(_.toList.map(toCollectionDTO)),
+                      dsV.collections.map(_.toList.map(toCollectionDto)),
                     externalPublications = dsV.externalPublications
-                      .map(_.toList.map(toExternalPublicationDTO)),
+                      .map(_.toList.map(toExternalPublicationDto)),
                     Some(now)
                   ),
                   3.minutes

@@ -46,57 +46,56 @@ class DoiHandler(
 ) extends GuardrailHandler {
 
   override def getDoi(
-    respond: GuardrailResource.getDoiResponse.type
+    respond: GuardrailResource.GetDoiResponse.type
   )(
     doi: String
-  ): Future[GuardrailResource.getDoiResponse] = {
+  ): Future[GuardrailResource.GetDoiResponse] = {
     implicit val logContext = DoiLogContext(doi = Some(doi))
 
     ports.db
       .run(DoiMapper.getDoi(doi))
       .flatMap { internalDoi =>
-        withAuthorization[GuardrailResource.getDoiResponse](
+        withAuthorization[GuardrailResource.GetDoiResponse](
           claim,
           internalDoi.organizationId,
           internalDoi.datasetId
         ) {
 
           ports.dataCiteClient.getDoi(internalDoi.doi).map { dataciteDoi =>
-            GuardrailResource.getDoiResponse
+            GuardrailResource.GetDoiResponse
               .OK(
                 DoiDTO
                   .apply(internalDoi, dataciteDoi)
-                  .asJson
               )
           }
 
         }.recover {
           case ForbiddenException(e) =>
-            GuardrailResource.getDoiResponse.Forbidden(e)
+            GuardrailResource.GetDoiResponse.Forbidden(e)
           case NonFatal(e) =>
-            GuardrailResource.getDoiResponse.InternalServerError(e.toString)
+            GuardrailResource.GetDoiResponse.InternalServerError(e.toString)
         }
       }
       .recover {
         case NoDoiException(_) =>
-          GuardrailResource.getDoiResponse.NotFound(
+          GuardrailResource.GetDoiResponse.NotFound(
             s"DOI $doi could not be found"
           )
       }
   }
 
   override def getLatestDoi(
-    respond: GuardrailResource.getLatestDoiResponse.type
+    respond: GuardrailResource.GetLatestDoiResponse.type
   )(
     organizationId: Int,
     datasetId: Int
-  ): Future[GuardrailResource.getLatestDoiResponse] = {
+  ): Future[GuardrailResource.GetLatestDoiResponse] = {
     implicit val logContext = DoiLogContext(
       organizationId = Some(organizationId),
       datasetId = Some(datasetId)
     )
 
-    withAuthorization[GuardrailResource.getLatestDoiResponse](
+    withAuthorization[GuardrailResource.GetLatestDoiResponse](
       claim,
       organizationId,
       datasetId
@@ -110,30 +109,30 @@ class DoiHandler(
 
       result.map {
         case (internalDoi, dataciteDoi) =>
-          GuardrailResource.getLatestDoiResponse.OK(
-            DoiDTO.apply(internalDoi, dataciteDoi).asJson
+          GuardrailResource.GetLatestDoiResponse.OK(
+            DoiDTO.apply(internalDoi, dataciteDoi)
           )
       }
     }.recover {
       case NoDatasetDoiException(_, _) =>
-        GuardrailResource.getLatestDoiResponse.NotFound(
+        GuardrailResource.GetLatestDoiResponse.NotFound(
           s"doi for organizationId=$organizationId datasetId=$datasetId"
         )
       case ForbiddenException(e) =>
-        GuardrailResource.getLatestDoiResponse.Forbidden(e)
+        GuardrailResource.GetLatestDoiResponse.Forbidden(e)
       case NonFatal(e) =>
-        GuardrailResource.getLatestDoiResponse.InternalServerError(e.toString)
+        GuardrailResource.GetLatestDoiResponse.InternalServerError(e.toString)
     }
   }
 
   override def createDraftDoi(
-    respond: GuardrailResource.createDraftDoiResponse.type
+    respond: GuardrailResource.CreateDraftDoiResponse.type
   )(
     organizationId: Int,
     datasetId: Int,
     body: definitions.CreateDraftDoiRequest
-  ): Future[GuardrailResource.createDraftDoiResponse] = {
-    withAuthorization[GuardrailResource.createDraftDoiResponse](
+  ): Future[GuardrailResource.CreateDraftDoiResponse] = {
+    withAuthorization[GuardrailResource.CreateDraftDoiResponse](
       claim,
       organizationId,
       datasetId
@@ -163,27 +162,27 @@ class DoiHandler(
       } yield DoiDTO.apply(internalDoi, dataciteDoi)
 
       ports.db.run(query.transactionally).map { doi =>
-        GuardrailResource.createDraftDoiResponseCreated(doi.asJson)
+        GuardrailResource.CreateDraftDoiResponseCreated(doi)
       }
 
     }.recover {
       case ForbiddenException(e) =>
-        GuardrailResource.createDraftDoiResponse.Forbidden(e)
+        GuardrailResource.CreateDraftDoiResponse.Forbidden(e)
       case DuplicateDoiException =>
-        GuardrailResource.createDraftDoiResponse.BadRequest(
+        GuardrailResource.CreateDraftDoiResponse.BadRequest(
           s"The requested doi is already in use"
         )
       case NonFatal(e) =>
-        GuardrailResource.createDraftDoiResponse.InternalServerError(e.toString)
+        GuardrailResource.CreateDraftDoiResponse.InternalServerError(e.toString)
     }
   }
 
   override def publishDoi(
-    respond: GuardrailResource.publishDoiResponse.type
+    respond: GuardrailResource.PublishDoiResponse.type
   )(
     doi: String,
     body: PublishDoiRequest
-  ): Future[GuardrailResource.publishDoiResponse] = {
+  ): Future[GuardrailResource.PublishDoiResponse] = {
     val decodedDoi = URLDecoder.decode(doi, "utf-8")
     implicit val logContext = DoiLogContext(doi = Some(decodedDoi))
     ports.log.info(s"Requested DOI: $doi | Decoded DOI: $decodedDoi")
@@ -192,7 +191,7 @@ class DoiHandler(
       .flatMap { internalDoi =>
         {
 
-          withAuthorization[GuardrailResource.publishDoiResponse](
+          withAuthorization[GuardrailResource.PublishDoiResponse](
             claim,
             internalDoi.organizationId,
             internalDoi.datasetId
@@ -217,8 +216,8 @@ class DoiHandler(
                 ports.log.info(
                   s"Datacite Publish Response: ${publishedDoi.asJson.noSpaces}"
                 )
-                GuardrailResource.publishDoiResponse.OK(
-                  DoiDTO.apply(internalDoi, publishedDoi).asJson
+                GuardrailResource.PublishDoiResponse.OK(
+                  DoiDTO.apply(internalDoi, publishedDoi)
                 )
               }
           }
@@ -229,29 +228,29 @@ class DoiHandler(
           ports.log.error(
             s"Requested DOI: $doi | Decoded DOI: $decodedDoi could not be found"
           )
-          GuardrailResource.publishDoiResponse.NotFound(
+          GuardrailResource.PublishDoiResponse.NotFound(
             s"DOI $doi could not be found"
           )
         case ForbiddenException(e) =>
-          GuardrailResource.publishDoiResponse.Forbidden(e)
+          GuardrailResource.PublishDoiResponse.Forbidden(e)
         case NonFatal(e) => {
           ports.log.error(e.toString)
-          GuardrailResource.publishDoiResponse.InternalServerError(e.toString)
+          GuardrailResource.PublishDoiResponse.InternalServerError(e.toString)
         }
       }
   }
 
   override def hideDoi(
-    respond: GuardrailResource.hideDoiResponse.type
+    respond: GuardrailResource.HideDoiResponse.type
   )(
     doi: String
-  ): Future[GuardrailResource.hideDoiResponse] = {
+  ): Future[GuardrailResource.HideDoiResponse] = {
     implicit val logContext = DoiLogContext(doi = Some(doi))
     ports.db
       .run(DoiMapper.getDoi(doi))
       .flatMap { internalDoi =>
         {
-          withAuthorization[GuardrailResource.hideDoiResponse](
+          withAuthorization[GuardrailResource.HideDoiResponse](
             claim,
             internalDoi.organizationId,
             internalDoi.datasetId
@@ -263,8 +262,8 @@ class DoiHandler(
                 ports.log.info(
                   s"Datacite Hide Response: ${hiddenDoi.asJson.noSpaces}"
                 )
-                GuardrailResource.hideDoiResponse.OK(
-                  DoiDTO.apply(internalDoi, hiddenDoi).asJson
+                GuardrailResource.HideDoiResponse.OK(
+                  DoiDTO.apply(internalDoi, hiddenDoi)
                 )
               }
           }
@@ -272,24 +271,24 @@ class DoiHandler(
       }
       .recover {
         case NoDoiException(_) =>
-          GuardrailResource.hideDoiResponse.NotFound(
+          GuardrailResource.HideDoiResponse.NotFound(
             s"DOI $doi could not be found"
           )
         case ForbiddenException(e) =>
-          GuardrailResource.hideDoiResponse.Forbidden(e)
+          GuardrailResource.HideDoiResponse.Forbidden(e)
         case NonFatal(e) => {
           ports.log.error(e.toString)
-          GuardrailResource.hideDoiResponse.InternalServerError(e.toString)
+          GuardrailResource.HideDoiResponse.InternalServerError(e.toString)
         }
       }
   }
 
   override def reviseDoi(
-    respond: GuardrailResource.reviseDoiResponse.type
+    respond: GuardrailResource.ReviseDoiResponse.type
   )(
     doi: String,
     body: ReviseDoiRequest
-  ): Future[GuardrailResource.reviseDoiResponse] = {
+  ): Future[GuardrailResource.ReviseDoiResponse] = {
     implicit val logContext = DoiLogContext(doi = Some(doi))
 
     val now: OffsetDateTime = OffsetDateTime.now(ZoneId.of("UTC"))
@@ -324,21 +323,21 @@ class DoiHandler(
       .run(query.transactionally)
       .map {
         case (internalDoi, revisedDoi) => {
-          GuardrailResource.reviseDoiResponse.OK(
-            DoiDTO.apply(internalDoi, revisedDoi).asJson
+          GuardrailResource.ReviseDoiResponse.OK(
+            DoiDTO.apply(internalDoi, revisedDoi)
           )
         }
       }
       .recover {
         case NoDoiException(_) =>
-          GuardrailResource.reviseDoiResponse.NotFound(
+          GuardrailResource.ReviseDoiResponse.NotFound(
             s"DOI $doi could not be found"
           )
         case ForbiddenException(e) =>
-          GuardrailResource.reviseDoiResponse.Forbidden(e)
+          GuardrailResource.ReviseDoiResponse.Forbidden(e)
         case NonFatal(e) => {
           ports.log.error(e.toString)
-          GuardrailResource.reviseDoiResponse.InternalServerError(e.toString)
+          GuardrailResource.ReviseDoiResponse.InternalServerError(e.toString)
         }
       }
   }
@@ -348,10 +347,10 @@ class DoiHandler(
     * valid.
     */
   def getCitations(
-    respond: GuardrailResource.getCitationsResponse.type
+    respond: GuardrailResource.GetCitationsResponse.type
   )(
     dois: Iterable[String]
-  ): Future[GuardrailResource.getCitationsResponse] = {
+  ): Future[GuardrailResource.GetCitationsResponse] = {
 
     // Run requests in parallel with map/sequence (instead of traverse)
 
@@ -360,13 +359,13 @@ class DoiHandler(
       .sequence
       .map(
         citations =>
-          GuardrailResource.getCitationsResponse
-            .MultiStatus(citations.toIndexedSeq)
+          GuardrailResource.GetCitationsResponse
+            .MultiStatus(citations.toVector)
       )
       .recover {
         case NonFatal(e) => {
           ports.logger.noContext.error(e.getMessage)
-          GuardrailResource.getCitationsResponse.InternalServerError(e.toString)
+          GuardrailResource.GetCitationsResponse.InternalServerError(e.toString)
         }
       }
   }
@@ -375,7 +374,7 @@ class DoiHandler(
     * The Crosscite API is very slow (several seconds for a response).
     * We cache the citation data in Postgres for faster retrieval.
     */
-  def getAndCacheCitation(doi: String, ttl: Duration): Future[CitationDTO] = {
+  def getAndCacheCitation(doi: String, ttl: Duration): Future[CitationDto] = {
     implicit val logContext = DoiLogContext(doi = Some(doi))
 
     for {
@@ -409,8 +408,8 @@ class DoiHandler(
     } yield
       citation match {
         case Some(citation) =>
-          CitationDTO(status = 200, doi = doi, citation = Some(citation))
-        case None => CitationDTO(status = 404, doi = doi, citation = None)
+          CitationDto(status = 200, doi = doi, citation = Some(citation))
+        case None => CitationDto(status = 404, doi = doi, citation = None)
       }
   }
 

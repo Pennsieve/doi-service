@@ -47,12 +47,12 @@ trait DataCiteClient {
   def createDoi(
     doiSuffix: String,
     title: String,
-    creators: List[CreatorDTO],
+    creators: List[CreatorDto],
     publicationYear: Option[Int],
     version: Option[Int],
     description: Option[String],
-    licenses: Option[List[LicenseDTO]],
-    owner: Option[CreatorDTO]
+    licenses: Option[List[LicenseDto]],
+    owner: Option[CreatorDto]
   )(implicit
     logContext: DoiLogContext
   ): Future[DataciteDoi]
@@ -66,16 +66,16 @@ trait DataCiteClient {
   def publishDoi(
     doi: String,
     title: String,
-    creators: List[CreatorDTO],
+    creators: List[CreatorDto],
     publicationYear: Int,
     url: String,
     publisher: Option[String],
     version: Option[Int],
     description: Option[String],
-    licenses: Option[List[LicenseDTO]],
-    owner: Option[CreatorDTO],
-    collections: Option[List[CollectionDTO]],
-    externalPublications: Option[List[ExternalPublicationDTO]]
+    licenses: Option[List[LicenseDto]],
+    owner: Option[CreatorDto],
+    collections: Option[List[CollectionDto]],
+    externalPublications: Option[List[ExternalPublicationDto]]
   )(implicit
     logContext: DoiLogContext
   ): Future[DataciteDoi]
@@ -83,13 +83,13 @@ trait DataCiteClient {
   def reviseDoi(
     doi: String,
     title: String,
-    creators: List[CreatorDTO],
+    creators: List[CreatorDto],
     version: Option[Int],
     description: Option[String],
-    licenses: Option[List[LicenseDTO]],
-    owner: Option[CreatorDTO],
-    collections: Option[List[CollectionDTO]],
-    externalPublications: Option[List[ExternalPublicationDTO]],
+    licenses: Option[List[LicenseDto]],
+    owner: Option[CreatorDto],
+    collections: Option[List[CollectionDto]],
+    externalPublications: Option[List[ExternalPublicationDto]],
     updated: Option[OffsetDateTime]
   )(implicit
     logContext: DoiLogContext
@@ -123,12 +123,12 @@ class DataCiteClientImpl(
   override def createDoi(
     doiSuffix: String,
     title: String,
-    creators: List[CreatorDTO],
+    creators: List[CreatorDto],
     publicationYear: Option[Int],
     version: Option[Int],
     description: Option[String],
-    licenses: Option[List[LicenseDTO]],
-    owner: Option[CreatorDTO]
+    licenses: Option[List[LicenseDto]],
+    owner: Option[CreatorDto]
   )(implicit
     logContext: DoiLogContext
   ): Future[DataciteDoi] = {
@@ -148,7 +148,7 @@ class DataCiteClientImpl(
         owner = owner.map(
           o => Contributor(o.firstName, o.lastName, o.middleInitial, o.orcid)
         ),
-        rightsList = licenses.getOrElse(List[LicenseDTO]()).map { l =>
+        rightsList = licenses.getOrElse(List[LicenseDto]()).map { l =>
           Rights(l.license, Some(l.licenseUri))
         },
         relatedIdentifiers = List.empty
@@ -197,16 +197,16 @@ class DataCiteClientImpl(
   override def publishDoi(
     doi: String,
     title: String,
-    creators: List[CreatorDTO],
+    creators: List[CreatorDto],
     publicationYear: Int,
     url: String,
     publisher: Option[String],
     version: Option[Int],
     description: Option[String],
-    licenses: Option[List[LicenseDTO]],
-    owner: Option[CreatorDTO],
-    collections: Option[List[CollectionDTO]],
-    externalPublications: Option[List[ExternalPublicationDTO]]
+    licenses: Option[List[LicenseDto]],
+    owner: Option[CreatorDto],
+    collections: Option[List[CollectionDto]],
+    externalPublications: Option[List[ExternalPublicationDto]]
   )(implicit
     logContext: DoiLogContext
   ): Future[DataciteDoi] = {
@@ -276,13 +276,13 @@ class DataCiteClientImpl(
   override def reviseDoi(
     doi: String,
     title: String,
-    creators: List[CreatorDTO],
+    creators: List[CreatorDto],
     version: Option[Int],
     description: Option[String],
-    licenses: Option[List[LicenseDTO]],
-    owner: Option[CreatorDTO],
-    collections: Option[List[CollectionDTO]],
-    externalPublications: Option[List[ExternalPublicationDTO]],
+    licenses: Option[List[LicenseDto]],
+    owner: Option[CreatorDto],
+    collections: Option[List[CollectionDto]],
+    externalPublications: Option[List[ExternalPublicationDto]],
     updated: Option[OffsetDateTime]
   )(implicit
     logContext: DoiLogContext
@@ -336,7 +336,7 @@ class DataCiteClientImpl(
                     )
                   )
               ),
-            rightsList = Some(licenses.getOrElse(List[LicenseDTO]()).map { l =>
+            rightsList = Some(licenses.getOrElse(List[LicenseDto]()).map { l =>
               Rights(l.license, Some(l.licenseUri))
             }),
             relatedIdentifiers = Some(
@@ -431,7 +431,7 @@ class DataCiteClientImpl(
       )
 
   private def externalPublicationToRelatedIdentifier(
-    externalPublication: ExternalPublicationDTO
+    externalPublication: ExternalPublicationDto
   ): RelatedIdentifier =
     new RelatedIdentifier(
       relatedIdentifier = externalPublication.doi,

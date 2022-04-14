@@ -13,10 +13,10 @@ import scala.concurrent.Future
 class HealthcheckHandler extends GuardrailHandler {
 
   override def healthcheck(
-    respond: HealthcheckResource.healthcheckResponse.type
+    respond: HealthcheckResource.HealthcheckResponse.type
   )(
-  ): Future[HealthcheckResource.healthcheckResponse] = {
-    Future.successful(HealthcheckResource.healthcheckResponseOK)
+  ): Future[HealthcheckResource.HealthcheckResponse] = {
+    Future.successful(HealthcheckResource.HealthcheckResponseOK)
   }
 }
 

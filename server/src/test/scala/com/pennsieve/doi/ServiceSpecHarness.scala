@@ -3,7 +3,6 @@
 package com.pennsieve.doi
 
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
 import com.pennsieve.doi.clients.{ CitationClient, DataCiteClient }
 import com.pennsieve.test.AwaitableImplicits
 import com.spotify.docker.client.DefaultDockerClient
@@ -28,7 +27,6 @@ trait ServiceSpecHarness
     with StrictLogging { suite: Suite =>
 
   implicit private val system: ActorSystem = ActorSystem("doi-service")
-  implicit private val materializer: ActorMaterializer = ActorMaterializer()
   implicit private val executionContext: ExecutionContext = system.dispatcher
 
   // increase default patience to allow containers to come up

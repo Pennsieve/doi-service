@@ -10,7 +10,7 @@ credentials += Credentials(
   sys.env("PENNSIEVE_NEXUS_PW")
 )
 
-addSbtPlugin("com.twilio" % "sbt-guardrail" % "0.43.0")
+addSbtPlugin("dev.guardrail" % "sbt-guardrail" % "0.70.0")
 
 addSbtPlugin("io.spray" % "sbt-revolver" % "0.9.1")
 
