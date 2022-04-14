@@ -20,7 +20,7 @@ addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.14.6")
 
 addSbtPlugin("com.geirsson" % "sbt-scalafmt" % "1.6.0-RC4")
 
-addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.5.1")
+addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.9.3")
 
 addSbtPlugin("de.heikoseeberger" % "sbt-header" % "5.0.0")
 

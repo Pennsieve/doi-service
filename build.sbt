@@ -229,7 +229,7 @@ lazy val server = project
     },
     docker / imageNames := Seq(ImageName("pennsieve/doi-service:latest")),
     coverageExcludedPackages := "com.pennsieve.doi\\..*;",
-    coverageMinimum := 0, // TODO
+    coverageMinimumStmtTotal := 0, // TODO
     coverageFailOnMinimum := true
   )
   .dependsOn(client % "test->compile;compile->compile")
