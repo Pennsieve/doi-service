@@ -232,8 +232,8 @@ lazy val server = project
     coverageMinimumStmtTotal := 0, // TODO
     coverageFailOnMinimum := true
   )
-  .dependsOn(client % "test->compile;compile->compile")
-  .dependsOn(common % "test->compile;compile->compile")
+  .dependsOn(client % "test;compile")
+  .dependsOn(common % "test;compile")
 
 lazy val client = project
   .enablePlugins(AutomateHeaderPlugin)
