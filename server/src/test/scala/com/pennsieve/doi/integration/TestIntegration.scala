@@ -26,8 +26,6 @@ import com.pennsieve.test.AwaitableImplicits
 import monocle.macros.syntax.lens._
 import org.scalatest.{ BeforeAndAfterEach, Inside, Matchers, WordSpec }
 
-import scala.concurrent.ExecutionContext
-
 /**
   * Integration test that runs against the DataCite test API using the non-prod
   * account credentials.
