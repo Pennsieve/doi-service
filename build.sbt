@@ -135,7 +135,7 @@ lazy val Integration = config("integration") extend (Test)
 lazy val server = project
   .enablePlugins(AutomateHeaderPlugin)
   .enablePlugins(DockerPlugin)
-  .dependsOn(common)
+  .dependsOn(common, client % "test")
   .configs(Integration)
   .settings(
     name := "doi-service",
@@ -232,8 +232,6 @@ lazy val server = project
     coverageMinimumStmtTotal := 0, // TODO
     coverageFailOnMinimum := true
   )
-  .dependsOn(client % "test;compile")
-  .dependsOn(common % "test;compile")
 
 lazy val client = project
   .enablePlugins(AutomateHeaderPlugin)
