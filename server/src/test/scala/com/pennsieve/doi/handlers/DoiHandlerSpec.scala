@@ -42,8 +42,8 @@ import com.pennsieve.doi.models.{
 }
 import com.pennsieve.doi.{ ServiceSpecHarness, TestUtilities }
 import com.pennsieve.test.AwaitableImplicits
-import io.circe.syntax._
 import org.scalatest.{ BeforeAndAfterEach, Matchers, WordSpec }
+
 import java.time.{ OffsetDateTime, ZoneId }
 
 class DoiHandlerSpec
@@ -97,7 +97,7 @@ class DoiHandlerSpec
       val expected: DoiDTO =
         DoiDTO.apply(expectedDoi, TestUtilities.testDoi)
 
-      response shouldBe GetLatestDoiResponse.OK(expected.asJson)
+      response shouldBe GetLatestDoiResponse.OK(expected)
 
     }
 
@@ -205,7 +205,7 @@ class DoiHandlerSpec
 
       val request = com.pennsieve.doi.client.definitions.CreateDraftDoiRequest(
         title = Some("this is a test"),
-        creators = Some(IndexedSeq(CreatorDTO("Jon", "Adams", Some("Q")))),
+        creators = Some(Vector(CreatorDto("Jon", "Adams", Some("Q")))),
         publicationYear = Some(2019),
         version = Some(1)
       )
@@ -227,7 +227,7 @@ class DoiHandlerSpec
       val expectedResponse: DoiDTO =
         DoiDTO.apply(expectedDoi, TestUtilities.testDoi)
 
-      response shouldBe CreateDraftDoiResponse.Created(expectedResponse.asJson)
+      response shouldBe CreateDraftDoiResponse.Created(expectedResponse)
 
     }
 
@@ -246,7 +246,7 @@ class DoiHandlerSpec
 
       val request = com.pennsieve.doi.client.definitions.CreateDraftDoiRequest(
         title = Some("this is a test"),
-        creators = Some(IndexedSeq(CreatorDTO("Jon", "Adams", Some("Q")))),
+        creators = Some(Vector(CreatorDto("Jon", "Adams", Some("Q")))),
         publicationYear = Some(2019),
         version = Some(1)
       )
@@ -286,7 +286,7 @@ class DoiHandlerSpec
 
       val request = com.pennsieve.doi.client.definitions.CreateDraftDoiRequest(
         title = Some("this is a test"),
-        creators = Some(IndexedSeq(CreatorDTO("Jon", "Adams", Some("Q")))),
+        creators = Some(Vector(CreatorDto("Jon", "Adams", Some("Q")))),
         publicationYear = Some(2019),
         version = Some(1)
       )
@@ -328,7 +328,7 @@ class DoiHandlerSpec
 
       val request = com.pennsieve.doi.client.definitions.CreateDraftDoiRequest(
         title = Some("this is a test"),
-        creators = Some(IndexedSeq(CreatorDTO("Jon", "Adams", Some("Q")))),
+        creators = Some(Vector(CreatorDto("Jon", "Adams", Some("Q")))),
         publicationYear = Some(2019),
         suffix = Some("abcd-1234"),
         version = Some(1)
@@ -375,7 +375,7 @@ class DoiHandlerSpec
       val expected: DoiDTO =
         DoiDTO.apply(internalDoi, TestUtilities.testDoi)
 
-      response shouldBe GetDoiResponse.OK(expected.asJson)
+      response shouldBe GetDoiResponse.OK(expected)
     }
 
     "return Forbidden when not authorized to access the given dataset" in {
@@ -452,27 +452,27 @@ class DoiHandlerSpec
 
       val body = com.pennsieve.doi.client.definitions.PublishDoiRequest(
         title = "this is a test without identified publisher",
-        creators = IndexedSeq(
-          CreatorDTO("Salvatore", "Bonno", Some("P")),
-          CreatorDTO("Cherilyn", "Sarkisian")
+        creators = Vector(
+          CreatorDto("Salvatore", "Bonno", Some("P")),
+          CreatorDto("Cherilyn", "Sarkisian")
         ),
         publicationYear = 2019,
         url = "https://www.url.com",
         version = Some(1),
         licenses = Some(
-          IndexedSeq(
-            LicenseDTO(
+          Vector(
+            LicenseDto(
               "Apache 2.0",
               "https://spdx.org/licenses/Apache-2.0.json"
             )
           )
         ),
-        owner = Some(CreatorDTO("Cherilyn", "Sarkisian")),
+        owner = Some(CreatorDto("Cherilyn", "Sarkisian")),
         description = Some("Description of the dataset"),
-        collections = Some(IndexedSeq(CollectionDTO("Collection Title", 1))),
+        collections = Some(Vector(CollectionDto("Collection Title", 1))),
         externalPublications = Some(
-          IndexedSeq(
-            ExternalPublicationDTO("10.1117/12.911373", Some("IsSourceOf"))
+          Vector(
+            ExternalPublicationDto("10.1117/12.911373", Some("IsSourceOf"))
           )
         )
       )
@@ -520,7 +520,7 @@ class DoiHandlerSpec
       val expectedResponse: DoiDTO =
         DoiDTO.apply(internalDoi, expectedDataciteDoi)
 
-      response shouldBe PublishDoiResponse.OK(expectedResponse.asJson)
+      response shouldBe PublishDoiResponse.OK(expectedResponse)
       expectedResponse.publisher
     }
 
@@ -542,28 +542,28 @@ class DoiHandlerSpec
 
       val body = com.pennsieve.doi.client.definitions.PublishDoiRequest(
         title = "this is a test",
-        creators = IndexedSeq(
-          CreatorDTO("Salvatore", "Bonno", Some("P")),
-          CreatorDTO("Cherilyn", "Sarkisian")
+        creators = Vector(
+          CreatorDto("Salvatore", "Bonno", Some("P")),
+          CreatorDto("Cherilyn", "Sarkisian")
         ),
         publicationYear = 2019,
         url = "https://www.url.com",
         version = Some(1),
         licenses = Some(
-          IndexedSeq(
-            LicenseDTO(
+          Vector(
+            LicenseDto(
               "Apache 2.0",
               "https://spdx.org/licenses/Apache-2.0.json"
             )
           )
         ),
-        owner = Some(CreatorDTO("Cherilyn", "Sarkisian")),
+        owner = Some(CreatorDto("Cherilyn", "Sarkisian")),
         description = Some("Description of the dataset"),
         publisher = Some("Random Organization"),
-        collections = Some(IndexedSeq(CollectionDTO("Collection Title", 1))),
+        collections = Some(Vector(CollectionDto("Collection Title", 1))),
         externalPublications = Some(
-          IndexedSeq(
-            ExternalPublicationDTO("10.1117/12.911373", Some("IsSourceOf"))
+          Vector(
+            ExternalPublicationDto("10.1117/12.911373", Some("IsSourceOf"))
           )
         )
       )
@@ -611,7 +611,7 @@ class DoiHandlerSpec
       val expectedResponse: DoiDTO =
         DoiDTO.apply(internalDoi, expectedDataciteDoi)
 
-      response shouldBe PublishDoiResponse.OK(expectedResponse.asJson)
+      response shouldBe PublishDoiResponse.OK(expectedResponse)
       expectedResponse.publisher
     }
   }
@@ -635,25 +635,25 @@ class DoiHandlerSpec
 
       val body = com.pennsieve.doi.client.definitions.PublishDoiRequest(
         title = "this is a test",
-        creators = IndexedSeq(
-          CreatorDTO("Salvatore", "Bonno", Some("P")),
-          CreatorDTO("Cherilyn", "Sarkisian")
+        creators = Vector(
+          CreatorDto("Salvatore", "Bonno", Some("P")),
+          CreatorDto("Cherilyn", "Sarkisian")
         ),
         publicationYear = 2019,
         url = "https://www.url.com",
         version = Some(1),
         licenses = Some(
-          IndexedSeq(
-            LicenseDTO(
+          Vector(
+            LicenseDto(
               "Apache 2.0",
               "https://spdx.org/licenses/Apache-2.0.json"
             )
           )
         ),
-        owner = Some(CreatorDTO("Cherilyn", "Sarkisian")),
+        owner = Some(CreatorDto("Cherilyn", "Sarkisian")),
         externalPublications = Some(
-          IndexedSeq(
-            ExternalPublicationDTO("10.1117/12.911373", Some("IsReferencedBy"))
+          Vector(
+            ExternalPublicationDto("10.1117/12.911373", Some("IsReferencedBy"))
           )
         )
       )
@@ -670,24 +670,24 @@ class DoiHandlerSpec
             internalDoi.doi,
             com.pennsieve.doi.client.definitions.ReviseDoiRequest(
               title = "Updated Title",
-              creators = IndexedSeq(
-                CreatorDTO("Salvatore", "Bonno", Some("P")),
-                CreatorDTO("Cherilyn", "Sarkisian")
+              creators = Vector(
+                CreatorDto("Salvatore", "Bonno", Some("P")),
+                CreatorDto("Cherilyn", "Sarkisian")
               ),
               version = Some(1),
               description = Some("This is a description"),
               licenses = Some(
-                IndexedSeq(
-                  LicenseDTO(
+                Vector(
+                  LicenseDto(
                     "Apache 2.0",
                     "https://spdx.org/licenses/Apache-2.0.json"
                   )
                 )
               ),
-              owner = Some(CreatorDTO("Cherilyn", "Sarkisian")),
+              owner = Some(CreatorDto("Cherilyn", "Sarkisian")),
               externalPublications = Some(
-                IndexedSeq(
-                  ExternalPublicationDTO(
+                Vector(
+                  ExternalPublicationDto(
                     "10.1117/12.911373",
                     Some("References")
                   )
@@ -733,7 +733,6 @@ class DoiHandlerSpec
               owner = Some(Contributor("Cherilyn", "Sarkisian", None))
             )
           )
-          .asJson
       )
     }
 
@@ -761,7 +760,7 @@ class DoiHandlerSpec
             internalDoi.doi,
             com.pennsieve.doi.client.definitions.ReviseDoiRequest(
               title = "Updated Title",
-              creators = IndexedSeq(CreatorDTO("Jon", "Adams", Some("Q"))),
+              creators = Vector(CreatorDto("Jon", "Adams", Some("Q"))),
               version = Some(1),
               description = Some("This is a description")
             ),
@@ -795,20 +794,20 @@ class DoiHandlerSpec
 
       val body = com.pennsieve.doi.client.definitions.PublishDoiRequest(
         title = "this is a test",
-        creators = IndexedSeq(CreatorDTO("Jon", "Adams", Some("Q"))),
+        creators = Vector(CreatorDto("Jon", "Adams", Some("Q"))),
         publicationYear = 2019,
         url = "https://www.url.com",
         version = Some(1),
         description = Some("This is a description"),
         licenses = Some(
-          IndexedSeq(
-            LicenseDTO(
+          Vector(
+            LicenseDto(
               "Apache 2.0",
               "https://spdx.org/licenses/Apache-2.0.json"
             )
           )
         ),
-        owner = Some(CreatorDTO("Jon", "Adams", Some("Q")))
+        owner = Some(CreatorDto("Jon", "Adams", Some("Q")))
       )
 
       client
@@ -842,7 +841,7 @@ class DoiHandlerSpec
       val expectedResponse: DoiDTO =
         DoiDTO.apply(internalDoi, expectedDataciteDoi)
 
-      response shouldBe HideDoiResponse.OK(expectedResponse.asJson)
+      response shouldBe HideDoiResponse.OK(expectedResponse)
     }
   }
 
@@ -866,12 +865,12 @@ class DoiHandlerSpec
         .value
 
       citation should contain theSameElementsAs List(
-        CitationDTO(
+        CitationDto(
           status = 200,
           doi = FoundDoi,
           citation = Some("A citation")
         ),
-        CitationDTO(status = 404, doi = MissingDoi, citation = None)
+        CitationDto(status = 404, doi = MissingDoi, citation = None)
       )
 
       ports.db
