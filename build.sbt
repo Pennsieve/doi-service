@@ -33,13 +33,24 @@ lazy val headerLicenseValue = Some(
 )
 lazy val headerMappingsValue = HeaderFileType.scala -> HeaderCommentStyle.cppStyleLineComment
 
-lazy val akkaCirceVersion = "0.3.0"
-lazy val akkaHttpVersion = "10.1.11"
-lazy val akkaVersion = "2.6.5"
+lazy val akkaHttpVersion = SettingKey[String]("akkaHttpVersion")
+lazy val akkaVersion = SettingKey[String]("akkaVersion")
+lazy val akkaCirceVersion = SettingKey[String]("akkaCirceVersion")
+
+lazy val akkaCirce212Version = "0.3.0"
+lazy val akkaCirce213Version = "0.4.0"
+
+
+lazy val akkaHttp212Version = "10.1.11"
+lazy val akkaHttp213Version = "10.2.7"
+
+lazy val akka212Version = "2.6.5"
+lazy val akka213Version = "2.6.8"
+
 lazy val circeVersion = SettingKey[String]("circeVersion")
 lazy val circe212Version = "0.11.1"
 lazy val circe213Version = "0.14.1"
-lazy val authMiddlewareVersion = "4.2.3"
+lazy val authMiddlewareVersion = "5.1.3"
 lazy val serviceUtilitiesVersion = "8-9751ee3"
 lazy val utilitiesVersion = "4-55953e4"
 lazy val slickVersion = "3.3.0"
@@ -50,7 +61,7 @@ lazy val enumeratumVersion = SettingKey[String]("enumeratumVersion")
 lazy val enumeratum212Version = "1.5.13"
 lazy val enumeratum213Version = "1.7.0"
 lazy val monocleVersion = "2.0.0"
-lazy val discoverServiceClientVersion = "20-83899a7"
+lazy val discoverServiceClientVersion = "35-afcdaef"
 
 lazy val common = project
   .enablePlugins(AutomateHeaderPlugin)
@@ -70,14 +81,24 @@ lazy val common = project
       enumeratum212Version,
       enumeratum213Version
     ),
+    akkaHttpVersion := getVersion(
+      scalaVersion.value,
+      akkaHttp212Version,
+      akkaHttp213Version
+    ),
+    akkaVersion := getVersion(
+      scalaVersion.value,
+      akka212Version,
+      akka213Version
+    ),
     libraryDependencies ++= Seq(
       "io.circe" %% "circe-core" % circeVersion.value,
       "io.circe" %% "circe-generic" % circeVersion.value,
       "io.circe" %% "circe-jawn" % circeVersion.value,
       "com.beachape" %% "enumeratum" % enumeratumVersion.value,
       "com.beachape" %% "enumeratum-circe" % enumeratumVersion.value,
-      "com.typesafe.akka" %% "akka-http" % akkaHttpVersion,
-      "com.typesafe.akka" %% "akka-stream" % akkaVersion
+      "com.typesafe.akka" %% "akka-http" % akkaHttpVersion.value,
+      "com.typesafe.akka" %% "akka-stream" % akkaVersion.value
     ),
     libraryDependencies ++= handle212OnlyDependency(
       scalaVersion.value,
@@ -113,14 +134,24 @@ lazy val scripts = project
       enumeratum212Version,
       enumeratum213Version
     ),
+    akkaHttpVersion := getVersion(
+      scalaVersion.value,
+      akkaHttp212Version,
+      akkaHttp213Version
+    ),
+    akkaVersion := getVersion(
+      scalaVersion.value,
+      akka212Version,
+      akka213Version
+    ),
     libraryDependencies ++= Seq(
       "io.circe" %% "circe-core" % circeVersion.value,
       "io.circe" %% "circe-generic" % circeVersion.value,
       "io.circe" %% "circe-jawn" % circeVersion.value,
       "com.beachape" %% "enumeratum" % enumeratumVersion.value,
       "com.beachape" %% "enumeratum-circe" % enumeratumVersion.value,
-      "com.typesafe.akka" %% "akka-http" % akkaHttpVersion,
-      "com.typesafe.akka" %% "akka-stream" % akkaVersion,
+      "com.typesafe.akka" %% "akka-http" % akkaHttpVersion.value,
+      "com.typesafe.akka" %% "akka-stream" % akkaVersion.value,
       "com.pennsieve" %% "discover-service-client" % discoverServiceClientVersion,
       "com.pennsieve" %% "service-utilities" % serviceUtilitiesVersion
     ),
@@ -152,6 +183,21 @@ lazy val server = project
     Integration / testOptions := Seq(
       Tests.Filter(_.toLowerCase.contains("integration"))
     ),
+    akkaHttpVersion := getVersion(
+      scalaVersion.value,
+      akkaHttp212Version,
+      akkaHttp213Version
+    ),
+    akkaVersion := getVersion(
+      scalaVersion.value,
+      akka212Version,
+      akka213Version
+    ),
+    akkaCirceVersion := getVersion(
+      scalaVersion.value,
+      akkaCirce212Version,
+      akkaCirce213Version
+    ),
     libraryDependencies ++= Seq(
       "com.pennsieve" %% "service-utilities" % serviceUtilitiesVersion,
       "com.pennsieve" %% "utilities" % utilitiesVersion,
@@ -163,7 +209,7 @@ lazy val server = project
       "com.github.tminglei" %% "slick-pg" % slickPgVersion,
       "com.github.tminglei" %% "slick-pg_circe-json" % slickPgVersion,
       "io.scalaland" %% "chimney" % "0.2.1",
-      "org.mdedetrich" %% "akka-http-circe" % akkaCirceVersion,
+      "org.mdedetrich" %% "akka-http-circe" % akkaCirceVersion.value,
       "org.postgresql" % "postgresql" % "42.2.4",
       "ch.qos.logback" % "logback-classic" % logbackVersion,
       "ch.qos.logback" % "logback-core" % logbackVersion,
@@ -176,8 +222,8 @@ lazy val server = project
       "com.whisk" %% "docker-testkit-scalatest" % dockerItVersion % Test,
       "com.whisk" %% "docker-testkit-impl-spotify" % dockerItVersion % Test,
       "com.pennsieve" %% "utilities" % utilitiesVersion % Test classifier "tests",
-      "com.typesafe.akka" %% "akka-testkit" % akkaVersion % Test,
-      "com.typesafe.akka" %% "akka-http-testkit" % akkaHttpVersion % Test,
+      "com.typesafe.akka" %% "akka-testkit" % akkaVersion.value % Test,
+      "com.typesafe.akka" %% "akka-http-testkit" % akkaHttpVersion.value % Test,
       "com.amazonaws" % "aws-java-sdk-ssm" % "1.11.714" % Test
     ),
     Compile / guardrailTasks :=
