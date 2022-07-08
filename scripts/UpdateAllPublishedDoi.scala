@@ -135,7 +135,7 @@ object UpdateAllPublishedDoi extends App {
 
     } yield datasets
 
-    val datasetPage = Await.result(res.value, 3.minutes).right.get
+    val datasetPage = Await.result(res.value, 3.minutes).toOption.get
 
     datasetPage.datasets.map { dataset: PublicDatasetDto =>
       {
