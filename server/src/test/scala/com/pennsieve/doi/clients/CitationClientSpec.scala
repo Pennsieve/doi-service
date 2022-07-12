@@ -5,9 +5,10 @@ package com.pennsieve.doi.clients
 import com.pennsieve.doi.models.Doi
 import com.pennsieve.doi.{ NoDoiException, ServiceSpecHarness, TestUtilities }
 import com.pennsieve.test.AwaitableImplicits
-import org.scalatest.{ Matchers, WordSpec }
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class CitationClientSpec extends WordSpec with Matchers {
+class CitationClientSpec extends AnyWordSpec with Matchers {
 
   "CitationClient" should {
 

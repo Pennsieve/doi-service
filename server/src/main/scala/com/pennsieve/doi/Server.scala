@@ -9,6 +9,7 @@ import akka.http.scaladsl.server.Directives._
 import com.pennsieve.doi.handlers.{ DoiHandler, HealthcheckHandler }
 import com.pennsieve.service.utilities.MigrationRunner
 import com.typesafe.scalalogging.StrictLogging
+import pureconfig.ConfigSource
 import pureconfig.generic.auto._
 
 import scala.concurrent.duration.Duration
@@ -33,7 +34,7 @@ object DatabaseMigrator extends StrictLogging {
 }
 
 object Server extends App with StrictLogging {
-  val config: Config = pureconfig.loadConfigOrThrow[Config]
+  val config: Config = ConfigSource.default.loadOrThrow[Config]
 
   implicit val system: ActorSystem = ActorSystem("doi-service")
   implicit val executionContext: ExecutionContext = system.dispatcher
@@ -43,9 +44,9 @@ object Server extends App with StrictLogging {
   DatabaseMigrator.run(config.postgres)
 
   val routes: Route =
-    Route.seal(HealthcheckHandler.routes ~ DoiHandler.routes(ports))
+    Route.seal(concat(HealthcheckHandler.routes, DoiHandler.routes(ports)))
 
-  Http().bindAndHandle(routes, config.host, config.port)
+  Http().newServerAt(config.host, config.port).bindFlow(routes)
 
   logger.info(s"Server online at http://${config.host}:${config.port}")
 

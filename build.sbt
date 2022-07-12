@@ -4,6 +4,7 @@ import CrossCompilationUtil.{
   handle212OnlyDependency,
   scalaVersionMatch
 }
+import sbt.librarymanagement.{ Disabled, InclExclRule }
 
 ThisBuild / organization := "com.pennsieve"
 
@@ -11,7 +12,7 @@ lazy val scala212 = "2.12.11"
 lazy val scala213 = "2.13.8"
 lazy val supportedScalaVersions = List(scala212, scala213)
 
-ThisBuild / scalaVersion := scala212
+ThisBuild / scalaVersion := scala213
 
 ThisBuild / resolvers ++= Seq(
   "pennsieve-maven-proxy" at "https://nexus.pennsieve.cc/repository/maven-public"
@@ -33,24 +34,34 @@ lazy val headerLicenseValue = Some(
 )
 lazy val headerMappingsValue = HeaderFileType.scala -> HeaderCommentStyle.cppStyleLineComment
 
-lazy val akkaCirceVersion = "0.3.0"
-lazy val akkaHttpVersion = "10.1.11"
-lazy val akkaVersion = "2.6.5"
+lazy val akkaHttpVersion = SettingKey[String]("akkaHttpVersion")
+lazy val akkaVersion = SettingKey[String]("akkaVersion")
+lazy val akkaCirceVersion = SettingKey[String]("akkaCirceVersion")
+
+lazy val akkaCirce212Version = "0.3.0"
+lazy val akkaCirce213Version = "0.5.0"
+
+lazy val akkaHttp212Version = "10.1.11"
+lazy val akkaHttp213Version = "10.2.7"
+
+lazy val akka212Version = "2.6.5"
+lazy val akka213Version = "2.6.8"
+
 lazy val circeVersion = SettingKey[String]("circeVersion")
 lazy val circe212Version = "0.11.1"
 lazy val circe213Version = "0.14.1"
-lazy val authMiddlewareVersion = "4.2.3"
+lazy val authMiddlewareVersion = "5.1.3"
 lazy val serviceUtilitiesVersion = "8-9751ee3"
 lazy val utilitiesVersion = "4-55953e4"
-lazy val slickVersion = "3.3.0"
-lazy val slickPgVersion = "0.17.3"
-lazy val dockerItVersion = "0.9.7"
+lazy val slickVersion = "3.3.3"
+lazy val slickPgVersion = "0.20.3"
+lazy val dockerItVersion = "0.9.9"
 lazy val logbackVersion = "1.2.3"
 lazy val enumeratumVersion = SettingKey[String]("enumeratumVersion")
 lazy val enumeratum212Version = "1.5.13"
 lazy val enumeratum213Version = "1.7.0"
 lazy val monocleVersion = "2.0.0"
-lazy val discoverServiceClientVersion = "20-83899a7"
+lazy val discoverServiceClientVersion = "35-afcdaef"
 
 lazy val common = project
   .enablePlugins(AutomateHeaderPlugin)
@@ -70,14 +81,24 @@ lazy val common = project
       enumeratum212Version,
       enumeratum213Version
     ),
+    akkaHttpVersion := getVersion(
+      scalaVersion.value,
+      akkaHttp212Version,
+      akkaHttp213Version
+    ),
+    akkaVersion := getVersion(
+      scalaVersion.value,
+      akka212Version,
+      akka213Version
+    ),
     libraryDependencies ++= Seq(
       "io.circe" %% "circe-core" % circeVersion.value,
       "io.circe" %% "circe-generic" % circeVersion.value,
       "io.circe" %% "circe-jawn" % circeVersion.value,
       "com.beachape" %% "enumeratum" % enumeratumVersion.value,
       "com.beachape" %% "enumeratum-circe" % enumeratumVersion.value,
-      "com.typesafe.akka" %% "akka-http" % akkaHttpVersion,
-      "com.typesafe.akka" %% "akka-stream" % akkaVersion
+      "com.typesafe.akka" %% "akka-http" % akkaHttpVersion.value,
+      "com.typesafe.akka" %% "akka-stream" % akkaVersion.value
     ),
     libraryDependencies ++= handle212OnlyDependency(
       scalaVersion.value,
@@ -113,14 +134,24 @@ lazy val scripts = project
       enumeratum212Version,
       enumeratum213Version
     ),
+    akkaHttpVersion := getVersion(
+      scalaVersion.value,
+      akkaHttp212Version,
+      akkaHttp213Version
+    ),
+    akkaVersion := getVersion(
+      scalaVersion.value,
+      akka212Version,
+      akka213Version
+    ),
     libraryDependencies ++= Seq(
       "io.circe" %% "circe-core" % circeVersion.value,
       "io.circe" %% "circe-generic" % circeVersion.value,
       "io.circe" %% "circe-jawn" % circeVersion.value,
       "com.beachape" %% "enumeratum" % enumeratumVersion.value,
       "com.beachape" %% "enumeratum-circe" % enumeratumVersion.value,
-      "com.typesafe.akka" %% "akka-http" % akkaHttpVersion,
-      "com.typesafe.akka" %% "akka-stream" % akkaVersion,
+      "com.typesafe.akka" %% "akka-http" % akkaHttpVersion.value,
+      "com.typesafe.akka" %% "akka-stream" % akkaVersion.value,
       "com.pennsieve" %% "discover-service-client" % discoverServiceClientVersion,
       "com.pennsieve" %% "service-utilities" % serviceUtilitiesVersion
     ),
@@ -152,40 +183,58 @@ lazy val server = project
     Integration / testOptions := Seq(
       Tests.Filter(_.toLowerCase.contains("integration"))
     ),
+    akkaHttpVersion := getVersion(
+      scalaVersion.value,
+      akkaHttp212Version,
+      akkaHttp213Version
+    ),
+    akkaVersion := getVersion(
+      scalaVersion.value,
+      akka212Version,
+      akka213Version
+    ),
+    akkaCirceVersion := getVersion(
+      scalaVersion.value,
+      akkaCirce212Version,
+      akkaCirce213Version
+    ),
     libraryDependencies ++= Seq(
       "com.pennsieve" %% "service-utilities" % serviceUtilitiesVersion,
       "com.pennsieve" %% "utilities" % utilitiesVersion,
       "com.pennsieve" %% "auth-middleware" % authMiddlewareVersion,
-      "com.github.pureconfig" %% "pureconfig" % "0.10.2",
-      "com.iheart" %% "ficus" % "1.4.0",
+      "com.github.pureconfig" %% "pureconfig" % "0.17.1",
+      "com.iheart" %% "ficus" % "1.5.2",
       "com.typesafe.slick" %% "slick" % slickVersion,
       "com.typesafe.slick" %% "slick-hikaricp" % slickVersion,
       "com.github.tminglei" %% "slick-pg" % slickPgVersion,
       "com.github.tminglei" %% "slick-pg_circe-json" % slickPgVersion,
-      "io.scalaland" %% "chimney" % "0.2.1",
-      "org.mdedetrich" %% "akka-http-circe" % akkaCirceVersion,
+      "io.scalaland" %% "chimney" % "0.6.1",
+      "org.mdedetrich" %% "akka-http-circe" % akkaCirceVersion.value,
+      "com.typesafe.akka" %% "akka-slf4j" % akkaVersion.value,
       "org.postgresql" % "postgresql" % "42.2.4",
       "ch.qos.logback" % "logback-classic" % logbackVersion,
       "ch.qos.logback" % "logback-core" % logbackVersion,
-      "com.typesafe.scala-logging" %% "scala-logging" % "3.9.0",
+      "com.typesafe.scala-logging" %% "scala-logging" % "3.9.4",
       "net.logstash.logback" % "logstash-logback-encoder" % "5.2",
       "com.github.julien-truffaut" %% "monocle-core" % monocleVersion,
       "com.github.julien-truffaut" %% "monocle-macro" % monocleVersion,
       // Test dependencies
-      "org.scalatest" %% "scalatest" % "3.0.5" % Test,
+      "org.scalatest" %% "scalatest" % "3.2.12" % Test,
       "com.whisk" %% "docker-testkit-scalatest" % dockerItVersion % Test,
       "com.whisk" %% "docker-testkit-impl-spotify" % dockerItVersion % Test,
       "com.pennsieve" %% "utilities" % utilitiesVersion % Test classifier "tests",
-      "com.typesafe.akka" %% "akka-testkit" % akkaVersion % Test,
-      "com.typesafe.akka" %% "akka-http-testkit" % akkaHttpVersion % Test,
+      "com.typesafe.akka" %% "akka-testkit" % akkaVersion.value % Test,
+      "com.typesafe.akka" %% "akka-http-testkit" % akkaHttpVersion.value % Test,
       "com.amazonaws" % "aws-java-sdk-ssm" % "1.11.714" % Test
+    ),
+    excludeDependencies ++= Seq(
+      ExclusionRule("com.typesafe.akka", "akka-slf4j")
     ),
     Compile / guardrailTasks :=
       List(
         ScalaServer(
           file("swagger/doi-service.yml"),
-          pkg = "com.pennsieve.doi.server",
-          modules = List("akka-http", "circe-0.11")
+          pkg = "com.pennsieve.doi.server"
         )
       ),
     docker / dockerfile := {

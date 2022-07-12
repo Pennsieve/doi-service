@@ -42,12 +42,15 @@ import com.pennsieve.doi.models.{
 }
 import com.pennsieve.doi.{ ServiceSpecHarness, TestUtilities }
 import com.pennsieve.test.AwaitableImplicits
-import org.scalatest.{ BeforeAndAfterEach, Matchers, WordSpec }
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatest.BeforeAndAfterEach
+import org.scalatest.EitherValues._
 
 import java.time.{ OffsetDateTime, ZoneId }
 
 class DoiHandlerSpec
-    extends WordSpec
+    extends AnyWordSpec
     with ScalatestRouteTest
     with ServiceSpecHarness
     with AwaitableImplicits
@@ -58,7 +61,7 @@ class DoiHandlerSpec
     Route.seal(DoiHandler.routes(getPorts(getConfig())))
 
   def createClient(routes: Route): DoiClient =
-    DoiClient.httpClient(Route.asyncHandler(routes))
+    DoiClient.httpClient(Route.toFunction(routes))
 
   val client: DoiClient = createClient(createRoutes())
 
@@ -91,8 +94,7 @@ class DoiHandlerSpec
         client
           .getLatestDoi(organizationId, datasetId, authToken)
           .awaitFinite()
-          .right
-          .get
+          .value
 
       val expected: DoiDTO =
         DoiDTO.apply(expectedDoi, TestUtilities.testDoi)
@@ -122,8 +124,7 @@ class DoiHandlerSpec
         client
           .getLatestDoi(differentOrganizationId, datasetId, authToken)
           .awaitFinite()
-          .right
-          .get
+          .value
 
       response shouldBe GetLatestDoiResponse.Forbidden(
         s"Not allowed for organization $differentOrganizationId"
@@ -152,8 +153,7 @@ class DoiHandlerSpec
         client
           .getLatestDoi(organizationId, differentDatasetId, authToken)
           .awaitFinite()
-          .right
-          .get
+          .value
 
       response shouldBe GetLatestDoiResponse.Forbidden(
         s"Not allowed for dataset $differentDatasetId"
@@ -178,8 +178,7 @@ class DoiHandlerSpec
         client
           .getLatestDoi(organizationId, datasetId, authToken)
           .awaitFinite()
-          .right
-          .get
+          .value
 
       response shouldBe GetLatestDoiResponse.NotFound(
         s"doi for organizationId=$organizationId datasetId=$datasetId"
@@ -214,8 +213,7 @@ class DoiHandlerSpec
         client
           .createDraftDoi(organizationId, datasetId, request, authToken)
           .awaitFinite()
-          .right
-          .get
+          .value
 
       val expectedDoi: Doi = ports.db
         .run(
@@ -262,8 +260,7 @@ class DoiHandlerSpec
             authToken
           )
           .awaitFinite()
-          .right
-          .get
+          .value
 
       response shouldBe CreateDraftDoiResponse.Forbidden(
         s"Not allowed for organization $differentOrganizationId"
@@ -302,8 +299,7 @@ class DoiHandlerSpec
             authToken
           )
           .awaitFinite()
-          .right
-          .get
+          .value
 
       response shouldBe CreateDraftDoiResponse.Forbidden(
         s"Not allowed for dataset $differentDatasetId"
@@ -338,8 +334,7 @@ class DoiHandlerSpec
         client
           .createDraftDoi(organizationId, datasetId, request, authToken)
           .awaitFinite()
-          .right
-          .get
+          .value
 
       response shouldBe CreateDraftDoiResponse.BadRequest(
         s"The requested doi is already in use"
@@ -369,8 +364,7 @@ class DoiHandlerSpec
         client
           .getDoi(internalDoi.doi, authToken)
           .awaitFinite()
-          .right
-          .get
+          .value
 
       val expected: DoiDTO =
         DoiDTO.apply(internalDoi, TestUtilities.testDoi)
@@ -400,8 +394,7 @@ class DoiHandlerSpec
         client
           .getDoi(internalDoi.doi, authToken)
           .awaitFinite()
-          .right
-          .get
+          .value
 
       response shouldBe GetDoiResponse.Forbidden(
         s"Not allowed for dataset $differentDatasetId"
@@ -425,8 +418,7 @@ class DoiHandlerSpec
         client
           .getDoi("12345", authToken)
           .awaitFinite()
-          .right
-          .get
+          .value
 
       response shouldBe GetDoiResponse.NotFound("DOI 12345 could not be found")
     }
@@ -481,8 +473,7 @@ class DoiHandlerSpec
         client
           .publishDoi(internalDoi.doi, body, authToken)
           .awaitFinite()
-          .right
-          .get
+          .value
 
       val expectedDataciteDoi = DataciteDoi(
         internalDoi.doi,
@@ -572,8 +563,7 @@ class DoiHandlerSpec
         client
           .publishDoi(internalDoi.doi, body, authToken)
           .awaitFinite()
-          .right
-          .get
+          .value
 
       val expectedDataciteDoi = DataciteDoi(
         internalDoi.doi,
@@ -661,8 +651,7 @@ class DoiHandlerSpec
       client
         .publishDoi(internalDoi.doi, body, authToken)
         .awaitFinite()
-        .right
-        .get
+        .value
 
       val response =
         client
@@ -697,8 +686,7 @@ class DoiHandlerSpec
             authToken
           )
           .awaitFinite()
-          .right
-          .get
+          .value
 
       response shouldBe ReviseDoiResponse.OK(
         DoiDTO
@@ -767,8 +755,7 @@ class DoiHandlerSpec
             authToken
           )
           .awaitFinite()
-          .right
-          .get
+          .value
 
       response shouldBe an[ReviseDoiResponse.Forbidden]
 
@@ -815,7 +802,7 @@ class DoiHandlerSpec
         .awaitFinite()
 
       val response =
-        client.hideDoi(internalDoi.doi, authToken).awaitFinite().right.get
+        client.hideDoi(internalDoi.doi, authToken).awaitFinite().value
 
       val expectedDataciteDoi = DataciteDoi(
         TestUtilities.testDoiStr,
@@ -859,8 +846,7 @@ class DoiHandlerSpec
       val citation = client
         .getCitations(List(FoundDoi, MissingDoi), authToken)
         .awaitFinite()
-        .right
-        .get
+        .value
         .asInstanceOf[GetCitationsResponse.MultiStatus]
         .value
 
@@ -890,8 +876,7 @@ class DoiHandlerSpec
       val citation = client
         .getCitations(List(FoundDoi, MissingDoi), authToken)
         .awaitFinite()
-        .right
-        .get shouldBe an[GetCitationsResponse.MultiStatus]
+        .value shouldBe an[GetCitationsResponse.MultiStatus]
 
       // Move the `createdAt` timestamp back in time
 
@@ -909,8 +894,7 @@ class DoiHandlerSpec
       client
         .getCitations(List(FoundDoi, MissingDoi), authToken)
         .awaitFinite()
-        .right
-        .get shouldBe an[GetCitationsResponse.MultiStatus]
+        .value shouldBe an[GetCitationsResponse.MultiStatus]
 
       val cachedAt = ports.db
         .run(CitationCacheMapper.get(FoundDoi))

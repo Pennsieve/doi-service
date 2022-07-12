@@ -24,14 +24,17 @@ import com.pennsieve.doi.{ Config, Ports, ServiceSpecHarness }
 import com.pennsieve.doi.handlers.DoiHandler
 import com.pennsieve.test.AwaitableImplicits
 import monocle.macros.syntax.lens._
-import org.scalatest.{ BeforeAndAfterEach, Inside, Matchers, WordSpec }
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatest.{ BeforeAndAfterEach, Inside }
+import org.scalatest.EitherValues._
 
 /**
   * Integration test that runs against the DataCite test API using the non-prod
   * account credentials.
   */
 class IntegrationSpec
-    extends WordSpec
+    extends AnyWordSpec
     with ScalatestRouteTest
     with ServiceSpecHarness
     with AwaitableImplicits
@@ -70,7 +73,8 @@ class IntegrationSpec
       .getParameter()
       .getValue()
 
-    super.getConfig
+    super
+      .getConfig()
       .lens(_.dataCite.username)
       .modify(_ => dataciteUsername)
       .lens(_.dataCite.password)
@@ -90,7 +94,7 @@ class IntegrationSpec
     Route.seal(DoiHandler.routes(getPorts(getConfig())))
 
   def createClient(routes: Route): DoiClient =
-    DoiClient.httpClient(Route.asyncHandler(routes))
+    DoiClient.httpClient(Route.toFunction(routes))
 
   val client: DoiClient = createClient(createRoutes())
 
@@ -113,8 +117,7 @@ class IntegrationSpec
       client
         .getLatestDoi(organizationId, datasetId, authToken)
         .awaitFinite()
-        .right
-        .get shouldBe an[GetLatestDoiResponse.NotFound]
+        .value shouldBe an[GetLatestDoiResponse.NotFound]
 
       // ----- Create Draft DOI ------------------------------------------------
 
@@ -132,22 +135,19 @@ class IntegrationSpec
             authToken
           )
           .awaitFinite()
-          .right
-          .get
+          .value
 
       val created: DoiDTO = createResponse
         .asInstanceOf[CreateDraftDoiResponse.Created]
         .value
 
-      created should have(
-        'organizationId (organizationId),
-        'datasetId (datasetId),
-        'title (Some("")), // TODO collapse this
-        'url (None),
-        'publicationYear (None),
-        'state (Some(DoiState.Draft)),
-        'creators (None)
-      )
+      created.organizationId should be(organizationId)
+      created.datasetId should be(datasetId)
+      created.title should be(Some(""))
+      created.url should be(None)
+      created.publicationYear should be(None)
+      created.state should be(Some(DoiState.Draft))
+      created.creators should be(None)
 
       // ----- Publish a DOI -------------------------------------------------
 
@@ -182,26 +182,21 @@ class IntegrationSpec
             authToken
           )
           .awaitFinite()
-          .right
-          .get
+          .value
 
       val published: DoiDTO = publishResponse
         .asInstanceOf[PublishDoiResponse.OK]
         .value
 
-      published should have(
-        'organizationId (organizationId),
-        'datasetId (datasetId),
-        'title (Some("Integration Test DOI")),
-        'url (
-          Some(
-            s"https://discover.pennsieve.net/test/integration/${created.doi}"
-          )
-        ),
-        'publicationYear (Some(2020)),
-        'state (Some(DoiState.Findable)),
-        'creators (Some(List(Some("Jon Q Adams"))))
+      published.organizationId should be(organizationId)
+      published.datasetId should be(datasetId)
+      published.title should be(Some("Integration Test DOI"))
+      published.url should be(
+        Some(s"https://discover.pennsieve.net/test/integration/${created.doi}")
       )
+      published.publicationYear should be(Some(2020))
+      published.state should be(Some(DoiState.Findable))
+      published.creators should be(Some(List(Some("Jon Q Adams"))))
 
       // ----- Revise a DOI ---------------------------------------------------
 
@@ -232,32 +227,26 @@ class IntegrationSpec
             authToken
           )
           .awaitFinite()
-          .right
-          .get
+          .value
 
       reviseResponse shouldBe an[ReviseDoiResponse.OK]
 
       val revised = client
         .getLatestDoi(organizationId, datasetId, authToken)
         .awaitFinite()
-        .right
-        .get
+        .value
         .asInstanceOf[GetLatestDoiResponse.OK]
         .value
 
-      revised should have(
-        'organizationId (organizationId),
-        'datasetId (datasetId),
-        'title (Some("Revised DOI")),
-        'url (
-          Some(
-            s"https://discover.pennsieve.net/test/integration/${created.doi}"
-          )
-        ),
-        'publicationYear (Some(2020)),
-        'state (Some(DoiState.Findable)),
-        'creators (Some(List(Some("Jon Q Adams"))))
+      revised.organizationId should be(organizationId)
+      revised.datasetId should be(datasetId)
+      revised.title should be(Some("Revised DOI"))
+      revised.url should be(
+        Some(s"https://discover.pennsieve.net/test/integration/${created.doi}")
       )
+      revised.publicationYear should be(Some(2020))
+      revised.state should be(Some(DoiState.Findable))
+      revised.creators should be(Some(List(Some("Jon Q Adams"))))
 
       // ----- Unpublish a DOI ------------------------------------------------
 
@@ -265,32 +254,26 @@ class IntegrationSpec
         client
           .hideDoi(created.doi, authToken)
           .awaitFinite()
-          .right
-          .get
+          .value
 
       hideResponse shouldBe an[HideDoiResponse.OK]
 
       val hidden = client
         .getLatestDoi(organizationId, datasetId, authToken)
         .awaitFinite()
-        .right
-        .get
+        .value
         .asInstanceOf[GetLatestDoiResponse.OK]
         .value
 
-      hidden should have(
-        'organizationId (organizationId),
-        'datasetId (datasetId),
-        'title (Some("Revised DOI")),
-        'url (
-          Some(
-            s"https://discover.pennsieve.net/test/integration/${created.doi}"
-          )
-        ),
-        'publicationYear (Some(2020)),
-        'state (Some(DoiState.Registered)),
-        'creators (Some(List(Some("Jon Q Adams"))))
+      hidden.organizationId should be(organizationId)
+      hidden.datasetId should be(datasetId)
+      hidden.title should be(Some("Revised DOI"))
+      hidden.url should be(
+        Some(s"https://discover.pennsieve.net/test/integration/${created.doi}")
       )
+      hidden.publicationYear should be(Some(2020))
+      hidden.state should be(Some(DoiState.Registered))
+      hidden.creators should be(Some(List(Some("Jon Q Adams"))))
     }
 
     "get citations from CrossCite" in {
@@ -312,8 +295,7 @@ class IntegrationSpec
           authToken
         )
         .awaitFinite()
-        .right
-        .get
+        .value
         .asInstanceOf[GetCitationsResponse.MultiStatus]
         .value
 

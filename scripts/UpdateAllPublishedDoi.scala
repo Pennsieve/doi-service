@@ -78,13 +78,13 @@ object UpdateAllPublishedDoi extends App {
   }
 
   private def toCollectionDto(
-    discoverCollection: PublicCollectionDTO
+    discoverCollection: PublicCollectionDto
   ): CollectionDto = {
     CollectionDto(discoverCollection.name, discoverCollection.id)
   }
 
   private def toExternalPublicationDto(
-    discoverExternalPub: PublicExternalPublicationDTO
+    discoverExternalPub: PublicExternalPublicationDto
   ): ExternalPublicationDto = {
     ExternalPublicationDto(
       discoverExternalPub.doi,
@@ -135,9 +135,9 @@ object UpdateAllPublishedDoi extends App {
 
     } yield datasets
 
-    val datasetPage = Await.result(res.value, 3.minutes).right.get
+    val datasetPage = Await.result(res.value, 3.minutes).toOption.get
 
-    datasetPage.datasets.map { dataset: PublicDatasetDTO =>
+    datasetPage.datasets.map { dataset: PublicDatasetDto =>
       {
         var a = 0
         for (a <- 1 to dataset.version) {
@@ -147,7 +147,7 @@ object UpdateAllPublishedDoi extends App {
               .getDatasetVersion(dataset.id, a)
               .leftSemiflatMap(handleGuardrailError())
               .flatMap {
-                _.fold[EitherT[Future, CoreError, PublicDatasetDTO]](
+                _.fold[EitherT[Future, CoreError, PublicDatasetDto]](
                   handleOK = response => EitherT.pure(response),
                   handleGone =
                     msg => EitherT.leftT(DiscoverIgnorableError("Unpublished")),

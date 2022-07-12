@@ -37,6 +37,7 @@ class Ports(
     hikariDataSource.setPassword(config.postgres.password)
     hikariDataSource.setMaximumPoolSize(config.postgres.numConnections)
     hikariDataSource.setDriverClassName(config.postgres.driver)
+    hikariDataSource.setConnectionInitSql("set time zone 'UTC'")
 
     // Currently minThreads, maxThreads and maxConnections MUST be the same value
     // https://github.com/slick/slick/issues/1938
