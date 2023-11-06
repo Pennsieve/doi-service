@@ -9,7 +9,7 @@ import io.circe.{ Decoder, Encoder }
 import enumeratum.EnumEntry.Camelcase
 
 case class NameIdentifier(
-  nameIdentifier: String,
+  nameIdentifier: Option[String],
   schemeUri: String,
   nameIdentifierScheme: String
 )
@@ -18,7 +18,7 @@ object NameIdentifier {
   implicit val encoder: Encoder[NameIdentifier] = deriveEncoder
 
   def apply(orcid: String): NameIdentifier = {
-    NameIdentifier("https://orcid.org/" + orcid, "https://orcid.org", "ORCID")
+    NameIdentifier(Some("https://orcid.org/" + orcid), "https://orcid.org", "ORCID")
   }
 }
 
