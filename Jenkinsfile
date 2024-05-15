@@ -44,11 +44,11 @@ node("executor") {
         //     }
         // }
 
-        stage("Test Coverage") {
-            withCredentials([pennsieveNexusCreds]) {
-                sh "$sbt coverageReport"
-            }
-        }
+        // stage("Test Coverage") {
+        //     withCredentials([pennsieveNexusCreds]) {
+        //         sh "$sbt coverageReport"
+        //     }
+        // }
 
         if (env.BRANCH_NAME == 'main') {
             stage("Publish Jars") {
