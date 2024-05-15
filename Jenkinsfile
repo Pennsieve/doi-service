@@ -20,19 +20,15 @@ node("executor") {
             }
         }
 
-        // Tests are unable to run due to new Docker engine breaking changes
-        // and transient dependence on the (unsupported / archived) spotify
-        // Docker client
-        //
-        // stage("Test") {
-        //     withCredentials([pennsieveNexusCreds]) {
-        //         try {
-        //             sh "$sbt coverageOn +test"
-        //         } finally {
-        //             junit '**/target/test-reports/*.xml'
-        //         }
-        //     }
-        // }
+        stage("Test") {
+            withCredentials([pennsieveNexusCreds]) {
+                try {
+                    sh "$sbt coverageOn +test"
+                } finally {
+                    junit '**/target/test-reports/*.xml'
+                }
+            }
+        }
 
         // stage("Integration Test") {
         //     withCredentials([pennsieveNexusCreds]) {
@@ -44,11 +40,11 @@ node("executor") {
         //     }
         // }
 
-        // stage("Test Coverage") {
-        //     withCredentials([pennsieveNexusCreds]) {
-        //         sh "$sbt coverageReport"
-        //     }
-        // }
+        stage("Test Coverage") {
+            withCredentials([pennsieveNexusCreds]) {
+                sh "$sbt coverageReport"
+            }
+        }
 
         if (env.BRANCH_NAME == 'main') {
             stage("Publish Jars") {

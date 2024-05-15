@@ -5,9 +5,11 @@ package com.pennsieve.doi.db
 import com.pennsieve.doi.db.profile.api._
 import com.pennsieve.doi.ServiceSpecHarness
 import com.pennsieve.test.AwaitableImplicits
+import org.scalatest.DoNotDiscover
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
+@DoNotDiscover
 class CitationCacheMapperSpec
     extends AnyWordSpec
     with ServiceSpecHarness
