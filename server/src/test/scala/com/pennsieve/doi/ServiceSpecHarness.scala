@@ -35,7 +35,12 @@ trait ServiceSpecHarness
 
   // provide a dockerFactory
   override implicit val dockerFactory: DockerFactory =
-    try new SpotifyDockerFactory(DefaultDockerClient.fromEnv().build())
+    try new SpotifyDockerFactory(
+      DefaultDockerClient
+        .fromEnv()
+        .apiVersion("v1.41")
+        .build()
+    )
     catch {
       case _: DockerException =>
         throw new DockerException("Docker may not be running")

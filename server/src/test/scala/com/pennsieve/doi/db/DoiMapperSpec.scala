@@ -5,11 +5,9 @@ package com.pennsieve.doi.db
 import com.pennsieve.doi.models.Doi
 import com.pennsieve.doi.{ NoDoiException, ServiceSpecHarness, TestUtilities }
 import com.pennsieve.test.AwaitableImplicits
-import org.scalatest.DoNotDiscover
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
-@DoNotDiscover
 class DoiMapperSpec
     extends AnyWordSpec
     with ServiceSpecHarness

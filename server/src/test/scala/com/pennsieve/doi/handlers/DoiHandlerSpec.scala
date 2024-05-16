@@ -45,12 +45,10 @@ import com.pennsieve.test.AwaitableImplicits
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.BeforeAndAfterEach
-import org.scalatest.DoNotDiscover
 import org.scalatest.EitherValues._
 
 import java.time.{ OffsetDateTime, ZoneId }
 
-@DoNotDiscover
 class DoiHandlerSpec
     extends AnyWordSpec
     with ScalatestRouteTest
