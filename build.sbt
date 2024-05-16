@@ -240,6 +240,10 @@ lazy val server = project
     docker / dockerfile := {
       val artifact: File = assembly.value
       val artifactTargetPath = s"/app/${artifact.name}"
+
+      // Where Postgres (psql/JDBC) expects to find the trusted CA certificate
+      val CA_CERT_LOCATION = "/home/pennsieve/.postgresql/root.crt"
+
       new Dockerfile {
         from("pennsieve/java-cloudwrap:8-jre-alpine-0.5.9")
         copy(artifact, artifactTargetPath, chown = "pennsieve:pennsieve")
@@ -248,25 +252,23 @@ lazy val server = project
           "/app/run.sh",
           chown = "pennsieve:pennsieve"
         )
-        run(
-          "wget",
-          "-qO",
-          "/app/newrelic.jar",
-          "http://download.newrelic.com/newrelic/java-agent/newrelic-agent/current/newrelic.jar"
+        addRaw(
+          "http://download.newrelic.com/newrelic/java-agent/newrelic-agent/current/newrelic.jar",
+          "/app/newrelic.jar"
         )
-        run(
-          "wget",
-          "-qO",
-          "/app/newrelic.yml",
-          "http://download.newrelic.com/newrelic/java-agent/newrelic-agent/current/newrelic.yml"
+        addRaw(
+          "http://download.newrelic.com/newrelic/java-agent/newrelic-agent/current/newrelic.yml",
+          "/app/newrelic.yml"
         )
-        run("mkdir", "-p", "/home/pennsieve/.postgresql")
-        run(
-          "wget",
-          "-qO",
-          "/home/pennsieve/.postgresql/root.crt",
-          "https://s3.amazonaws.com/rds-downloads/rds-ca-2019-root.pem"
+        addRaw(
+          "https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem",
+          CA_CERT_LOCATION,
         )
+        user("root")
+        run("chmod", "+r", CA_CERT_LOCATION)
+        run("chown", "pennsieve:pennsieve", "/app/newrelic.jar")
+        run("chown", "pennsieve:pennsieve", "/app/newrelic.yml")
+        user("pennsieve")
         cmd(
           "--service",
           "doi-service",
