@@ -11,6 +11,7 @@ import com.pennsieve.doi.models.{
   DataciteDoi,
   Description,
   DoiEvent,
+  DoiMetadata,
   DoiState,
   RelatedIdentifier,
   Rights,
@@ -76,6 +77,8 @@ class MockDataCiteClient() extends DataCiteClient {
   // DOIs getDoi reports Findable (others are drafts), and the related
   // identifiers added to each DOI (addRelatedIdentifiers), by lower-case DOI.
   val findable: TrieMap[String, Unit] = TrieMap.empty
+  // The metadata publishDoi and reviseDoi were last given, by lower-case DOI.
+  val metadata: TrieMap[String, DoiMetadata] = TrieMap.empty
   val added: TrieMap[String, List[RelatedIdentifier]] = TrieMap.empty
 
   override def getDoi(
@@ -117,10 +120,12 @@ class MockDataCiteClient() extends DataCiteClient {
     licenses: Option[List[LicenseDto]],
     owner: Option[CreatorDto],
     collections: Option[List[CollectionDto]],
-    externalPublications: Option[List[ExternalPublicationDto]]
+    externalPublications: Option[List[ExternalPublicationDto]],
+    metadata: DoiMetadata
   )(implicit
     logContext: DoiLogContext
   ): Future[DataciteDoi] = {
+    this.metadata.update(doi.toLowerCase, metadata)
 
     Future.successful(
       DataciteDoi(
@@ -159,10 +164,12 @@ class MockDataCiteClient() extends DataCiteClient {
     owner: Option[CreatorDto],
     collections: Option[List[CollectionDto]],
     externalPublications: Option[List[ExternalPublicationDto]],
-    updated: Option[OffsetDateTime]
+    updated: Option[OffsetDateTime],
+    metadata: DoiMetadata
   )(implicit
     logContext: DoiLogContext
   ): Future[DataciteDoi] = {
+    this.metadata.update(doi.toLowerCase, metadata)
 
     Future.successful(
       testDoi

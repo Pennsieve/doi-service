@@ -126,10 +126,57 @@ object Description {
   }
 }
 
-case class Rights(rights: String, rightsUri: Option[String])
+/**
+  * A licence. rightsIdentifier is its SPDX identifier (for example
+  * CC-BY-4.0), which harvesters match on.
+  */
+case class Rights(
+  rights: String,
+  rightsUri: Option[String],
+  rightsIdentifier: Option[String] = None,
+  rightsIdentifierScheme: Option[String] = None,
+  schemeUri: Option[String] = None
+)
 object Rights {
   implicit val decoder: Decoder[Rights] = deriveDecoder
-  implicit val encoder: Encoder[Rights] = deriveEncoder
+  implicit val encoder: Encoder[Rights] =
+    deriveEncoder[Rights].mapJson(_.dropNullValues)
+
+  private val spdxUrl = "^https?://spdx\\.org/licenses/(.+?)(?:\\.json|\\.html)?$".r
+
+  /**
+    * A licence with its SPDX identifier, read from an spdx.org licence URL
+    * (https://spdx.org/licenses/CC-BY-4.0.json is CC-BY-4.0).
+    */
+  def withSpdx(rights: String, rightsUri: Option[String]): Rights = {
+    val identifier = rightsUri.collect { case spdxUrl(id) => id }
+    Rights(
+      rights,
+      rightsUri,
+      identifier,
+      identifier.map(_ => "SPDX"),
+      identifier.map(_ => "https://spdx.org/licenses/")
+    )
+  }
+}
+
+/**
+  * A subject: a free-text keyword, or a term from a vocabulary
+  * (subjectScheme, e.g. Fields of Science and Technology). Every part is read
+  * and written back, so revising a DOI keeps vocabulary terms whole.
+  */
+case class Subject(
+  subject: String,
+  subjectScheme: Option[String] = None,
+  schemeUri: Option[String] = None,
+  valueUri: Option[String] = None,
+  classificationCode: Option[String] = None,
+  lang: Option[String] = None
+)
+object Subject {
+  implicit val decoder: Decoder[Subject] = deriveDecoder
+  implicit val encoder: Encoder[Subject] =
+    deriveEncoder[Subject].mapJson(_.dropNullValues)
 }
 
 case class Title(title: String)
@@ -239,7 +286,9 @@ case class DoiAttributes(
   event: Option[DoiEvent] = None,
   mode: Option[String] = None,
   created: Option[String] = None,
-  updated: Option[String] = None
+  updated: Option[String] = None,
+  subjects: Option[List[Subject]] = None,
+  sizes: Option[List[String]] = None
 )
 
 object DoiAttributes {
@@ -332,7 +381,10 @@ object DataciteDoi {
     publisher: Option[String] = Some(defaultPublisher),
     state: DoiState = defaultState,
     event: Option[DoiEvent] = None,
-    mode: String = defaultMode
+    mode: String = defaultMode,
+    subjects: Option[List[Subject]] = None,
+    sizes: Option[List[String]] = None,
+    dates: Option[List[DoiDate]] = None
   ): DataciteDoi = {
     val doiTitles = List(Title(title))
     val doiType = Type(defaultDoiResourceType)
@@ -354,11 +406,13 @@ object DataciteDoi {
           rightsList = Some(rightsList),
           contributors = owner.map(o => List(o)),
           relatedIdentifiers = Some(relatedIdentifiers),
-          dates = doiDate,
+          dates = dates.orElse(doiDate),
           url = url,
           state = Some(state),
           event = event,
-          mode = Some(mode)
+          mode = Some(mode),
+          subjects = subjects,
+          sizes = sizes
         )
       )
     )

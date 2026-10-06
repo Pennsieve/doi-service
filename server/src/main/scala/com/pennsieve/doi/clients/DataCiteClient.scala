@@ -11,7 +11,9 @@ import com.pennsieve.doi.models.{
   DataciteDoi,
   DataciteError,
   Description,
+  DoiDate,
   DoiEvent,
+  DoiMetadata,
   DoiState,
   RelatedIdentifier,
   RelationType,
@@ -75,7 +77,8 @@ trait DataCiteClient {
     licenses: Option[List[LicenseDto]],
     owner: Option[CreatorDto],
     collections: Option[List[CollectionDto]],
-    externalPublications: Option[List[ExternalPublicationDto]]
+    externalPublications: Option[List[ExternalPublicationDto]],
+    metadata: DoiMetadata = DoiMetadata()
   )(implicit
     logContext: DoiLogContext
   ): Future[DataciteDoi]
@@ -90,7 +93,8 @@ trait DataCiteClient {
     owner: Option[CreatorDto],
     collections: Option[List[CollectionDto]],
     externalPublications: Option[List[ExternalPublicationDto]],
-    updated: Option[OffsetDateTime]
+    updated: Option[OffsetDateTime],
+    metadata: DoiMetadata = DoiMetadata()
   )(implicit
     logContext: DoiLogContext
   ): Future[DataciteDoi]
@@ -243,7 +247,8 @@ class DataCiteClientImpl(
     licenses: Option[List[LicenseDto]],
     owner: Option[CreatorDto],
     collections: Option[List[CollectionDto]],
-    externalPublications: Option[List[ExternalPublicationDto]]
+    externalPublications: Option[List[ExternalPublicationDto]],
+    metadata: DoiMetadata
   )(implicit
     logContext: DoiLogContext
   ): Future[DataciteDoi] = {
@@ -277,14 +282,17 @@ class DataCiteClientImpl(
         o => Contributor(o.firstName, o.lastName, o.middleInitial, o.orcid)
       ),
       rightsList = licenses.getOrElse(List.empty).map { l =>
-        Rights(l.license, Some(l.licenseUri))
+        Rights.withSpdx(l.license, Some(l.licenseUri))
       },
       relatedIdentifiers = externalPublications
         .getOrElse(List.empty)
         .map(ep => externalPublicationToRelatedIdentifier(ep)),
       state = DoiState.Findable,
       event = Some(DoiEvent.Publish),
-      mode = "edit"
+      mode = "edit",
+      subjects = metadata.subjects,
+      sizes = metadata.sizes,
+      dates = Some(metadata.dates(List(DoiDate(publicationYear.toString))))
     )
 
     log.info(s"Publishing DOI: ${publishRequestBody.asJson.noSpaces}")
@@ -320,7 +328,8 @@ class DataCiteClientImpl(
     owner: Option[CreatorDto],
     collections: Option[List[CollectionDto]],
     externalPublications: Option[List[ExternalPublicationDto]],
-    updated: Option[OffsetDateTime]
+    updated: Option[OffsetDateTime],
+    metadata: DoiMetadata
   )(implicit
     logContext: DoiLogContext
   ): Future[DataciteDoi] = {
@@ -352,7 +361,8 @@ class DataCiteClientImpl(
       body = dataciteDoi
         .lens(_.data.attributes)
         .modify(
-          _.copy(
+          attributes =>
+          attributes.copy(
             titles = List(Title(title)),
             creators = creators.map { c =>
               Creator(c.firstName, c.lastName, c.middleInitial, c.orcid)
@@ -374,8 +384,12 @@ class DataCiteClientImpl(
                   )
               ),
             rightsList = Some(licenses.getOrElse(List[LicenseDto]()).map { l =>
-              Rights(l.license, Some(l.licenseUri))
+              Rights.withSpdx(l.license, Some(l.licenseUri))
             }),
+            // What isn't given is kept.
+            subjects = metadata.revisedSubjects(attributes.subjects),
+            sizes = metadata.sizes.orElse(attributes.sizes),
+            dates = Some(metadata.dates(attributes.dates.getOrElse(List.empty))),
             // The external publications, as given, and the version links
             // doi-service added when versions were published.
             relatedIdentifiers = Some(

@@ -26,6 +26,7 @@ import com.pennsieve.doi.models.{
   DataciteDoi,
   Doi,
   DoiDTO,
+  DoiMetadata,
   DoiState,
   RelatedIdentifier,
   RelationType
@@ -218,7 +219,14 @@ class DoiHandler(
                 licenses = body.licenses.map(_.toList),
                 owner = body.owner,
                 collections = body.collections.map(_.toList),
-                externalPublications = body.externalPublications.map(_.toList)
+                externalPublications = body.externalPublications.map(_.toList),
+                metadata = DoiMetadata(
+                  keywords = body.keywords.map(_.toList),
+                  size = body.size,
+                  fileCount = body.fileCount,
+                  publishedAt = body.publishedAt,
+                  availableAt = body.availableAt
+                )
               )
               .flatMap { publishedDoi =>
                 ports.log.info(
@@ -322,7 +330,13 @@ class DoiHandler(
               owner = body.owner,
               collections = body.collections.map(_.toList),
               externalPublications = body.externalPublications.map(_.toList),
-              updated = Some(now)
+              updated = Some(now),
+              metadata = DoiMetadata(
+                keywords = body.keywords.map(_.toList),
+                size = body.size,
+                fileCount = body.fileCount,
+                revisedAt = body.revisedAt.orElse(Some(now))
+              )
             )
         }
       }
