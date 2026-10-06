@@ -157,35 +157,57 @@ object DoiDate {
 }
 
 /**
-  * See https://support.datacite.org/docs/schema-optional-properties-v41#122-relationtype
-  * for more possible values.
+  * Every relationType of the DataCite Metadata Schema (kernel-4,
+  * datacite-relationType-v4.xsd), so any DOI's metadata can be read.
   */
 sealed abstract class RelationType(override val entryName: String) extends EnumEntry
 
 object RelationType extends Enum[RelationType] with CirceEnum[RelationType] {
   val values = findValues
 
-//  case object Cites extends RelationTypeRelationType("Cites")
-//  case object Continues extends RelationType("Continues")
-  case object Describes extends RelationType("Describes")
-  case object Documents extends RelationType("Documents")
-//  case object HasMetadata extends RelationType("HasMetadata")
   case object IsCitedBy extends RelationType("IsCitedBy")
-//  case object IsCompiledBy extends RelationType("IsCompiledBy")
-//  case object IsContinuedBy extends RelationType("IsContinuedBy")
-  case object IsDerivedFrom extends RelationType("IsDerivedFrom")
-  case object IsDescribedBy extends RelationType("IsDescribedBy")
-  case object IsDocumentedBy extends RelationType("IsDocumentedBy")
-  case object IsMetadataFor extends RelationType("IsMetadataFor")
-  case object IsReferencedBy extends RelationType("IsReferencedBy")
-  case object IsRequiredBy extends RelationType("IsRequiredBy")
-  case object IsSourceOf extends RelationType("IsSourceOf")
-  case object IsSupplementedBy extends RelationType("IsSupplementedBy")
+  case object Cites extends RelationType("Cites")
   case object IsSupplementTo extends RelationType("IsSupplementTo")
-  case object IsOriginalFormOf extends RelationType("IsOriginalFormOf")
-  case object IsVariantFormOf extends RelationType("IsVariantFormOf")
+  case object IsSupplementedBy extends RelationType("IsSupplementedBy")
+  case object IsContinuedBy extends RelationType("IsContinuedBy")
+  case object Continues extends RelationType("Continues")
+  case object IsNewVersionOf extends RelationType("IsNewVersionOf")
+  case object IsPreviousVersionOf extends RelationType("IsPreviousVersionOf")
+  case object IsPartOf extends RelationType("IsPartOf")
+  case object HasPart extends RelationType("HasPart")
+  case object IsPublishedIn extends RelationType("IsPublishedIn")
+  case object IsReferencedBy extends RelationType("IsReferencedBy")
   case object References extends RelationType("References")
+  case object IsDocumentedBy extends RelationType("IsDocumentedBy")
+  case object Documents extends RelationType("Documents")
+  case object IsCompiledBy extends RelationType("IsCompiledBy")
+  case object Compiles extends RelationType("Compiles")
+  case object IsVariantFormOf extends RelationType("IsVariantFormOf")
+  case object IsOriginalFormOf extends RelationType("IsOriginalFormOf")
+  case object IsIdenticalTo extends RelationType("IsIdenticalTo")
+  case object HasMetadata extends RelationType("HasMetadata")
+  case object IsMetadataFor extends RelationType("IsMetadataFor")
+  case object Reviews extends RelationType("Reviews")
+  case object IsReviewedBy extends RelationType("IsReviewedBy")
+  case object IsDerivedFrom extends RelationType("IsDerivedFrom")
+  case object IsSourceOf extends RelationType("IsSourceOf")
+  case object Describes extends RelationType("Describes")
+  case object IsDescribedBy extends RelationType("IsDescribedBy")
+  case object HasVersion extends RelationType("HasVersion")
+  case object IsVersionOf extends RelationType("IsVersionOf")
   case object Requires extends RelationType("Requires")
+  case object IsRequiredBy extends RelationType("IsRequiredBy")
+  case object Obsoletes extends RelationType("Obsoletes")
+  case object IsObsoletedBy extends RelationType("IsObsoletedBy")
+  case object Collects extends RelationType("Collects")
+  case object IsCollectedBy extends RelationType("IsCollectedBy")
+  case object HasTranslation extends RelationType("HasTranslation")
+  case object IsTranslationOf extends RelationType("IsTranslationOf")
+  case object Other extends RelationType("Other")
+
+  /** The relations between versions of a dataset, which doi-service keeps. */
+  val versionLinks: Set[RelationType] =
+    Set(IsNewVersionOf, IsPreviousVersionOf, HasVersion, IsVersionOf)
 }
 
 case class RelatedIdentifier(

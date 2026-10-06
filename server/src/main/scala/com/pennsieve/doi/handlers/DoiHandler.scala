@@ -21,7 +21,15 @@ import com.pennsieve.doi.{
 import com.pennsieve.doi.db.profile.api._
 import com.pennsieve.doi.logging.logRequestAndResponse
 import com.pennsieve.doi.logging.DoiLogContext
-import com.pennsieve.doi.models.{ Citation, DataciteDoi, Doi, DoiDTO }
+import com.pennsieve.doi.models.{
+  Citation,
+  DataciteDoi,
+  Doi,
+  DoiDTO,
+  DoiState,
+  RelatedIdentifier,
+  RelationType
+}
 import com.pennsieve.doi.server.definitions
 import com.pennsieve.doi.server.definitions._
 import com.pennsieve.doi.server.doi.{
@@ -212,13 +220,15 @@ class DoiHandler(
                 collections = body.collections.map(_.toList),
                 externalPublications = body.externalPublications.map(_.toList)
               )
-              .map { publishedDoi =>
+              .flatMap { publishedDoi =>
                 ports.log.info(
                   s"Datacite Publish Response: ${publishedDoi.asJson.noSpaces}"
                 )
-                GuardrailResource.PublishDoiResponse.OK(
-                  DoiDTO.apply(internalDoi, publishedDoi)
-                )
+                linkToPreviousVersion(internalDoi).map { _ =>
+                  GuardrailResource.PublishDoiResponse.OK(
+                    DoiDTO.apply(internalDoi, publishedDoi)
+                  )
+                }
               }
           }
         }
@@ -346,6 +356,82 @@ class DoiHandler(
     * Note: roles in JWT do not matter for this endpoint, only that the JWT is
     * valid.
     */
+  /**
+    * Links a newly published version's DOI to the dataset's previous
+    * published version: IsNewVersionOf on the new one, IsPreviousVersionOf on
+    * the previous one. The previous version is the latest DOI the dataset got
+    * before this one that is findable (drafts never published are skipped).
+    * Best effort: a failure is logged and the publication stands.
+    */
+  def linkToPreviousVersion(
+    published: Doi
+  )(implicit
+    logContext: DoiLogContext
+  ): Future[Unit] =
+    ports.db
+      .run(
+        DoiMapper
+          .getByDataset(published.organizationId, published.datasetId)
+          .sortBy(_.createdAt.desc)
+          .result
+      )
+      .flatMap { dois =>
+        previousFindable(
+          dois.toList.filter(
+            d =>
+              !d.doi.equalsIgnoreCase(published.doi) && d.createdAt
+                .isBefore(published.createdAt)
+          )
+        )
+      }
+      .flatMap {
+        case None => Future.successful(())
+        case Some(previous) =>
+          ports.log.info(s"Linking ${published.doi} to the previous version ${previous.doi}")
+          for {
+            _ <- ports.dataCiteClient.addRelatedIdentifiers(
+              published.doi,
+              List(
+                RelatedIdentifier(
+                  previous.doi,
+                  relationType = RelationType.IsNewVersionOf
+                )
+              )
+            )
+            _ <- ports.dataCiteClient.addRelatedIdentifiers(
+              previous.doi,
+              List(
+                RelatedIdentifier(
+                  published.doi,
+                  relationType = RelationType.IsPreviousVersionOf
+                )
+              )
+            )
+          } yield ()
+      }
+      .recover {
+        case NonFatal(e) =>
+          ports.log.error(s"Linking ${published.doi} to its previous version failed: $e")
+      }
+
+  private def previousFindable(
+    candidates: List[Doi]
+  )(implicit
+    logContext: DoiLogContext
+  ): Future[Option[Doi]] =
+    candidates match {
+      case Nil => Future.successful(None)
+      case doi :: rest =>
+        ports.dataCiteClient
+          .getDoi(doi.doi)
+          .map(_.data.attributes.state)
+          .recover { case NonFatal(_) => None }
+          .flatMap {
+            case Some(DoiState.Findable) => Future.successful(Some(doi))
+            case _ => previousFindable(rest)
+          }
+    }
+
   def getCitations(
     respond: GuardrailResource.GetCitationsResponse.type
   )(
