@@ -12,12 +12,14 @@ import com.pennsieve.doi.models.{
   Description,
   DoiEvent,
   DoiState,
+  RelatedIdentifier,
   Rights,
   Title
 }
 import com.pennsieve.doi.server.definitions._
 import monocle.macros.syntax.lens._
 
+import scala.collection.concurrent.TrieMap
 import scala.concurrent.Future
 
 class MockDataCiteClient() extends DataCiteClient {
@@ -71,11 +73,35 @@ class MockDataCiteClient() extends DataCiteClient {
       Future.successful(testDoi)
     }
 
+  // DOIs getDoi reports Findable (others are drafts), and the related
+  // identifiers added to each DOI (addRelatedIdentifiers), by lower-case DOI.
+  val findable: TrieMap[String, Unit] = TrieMap.empty
+  val added: TrieMap[String, List[RelatedIdentifier]] = TrieMap.empty
+
   override def getDoi(
     doi: String
   )(implicit
     logContext: DoiLogContext
   ): Future[DataciteDoi] = {
+    Future.successful(
+      if (findable.contains(doi.toLowerCase))
+        testDoi
+          .lens(_.data.attributes.state)
+          .set(Some(DoiState.Findable))
+      else testDoi
+    )
+  }
+
+  override def addRelatedIdentifiers(
+    doi: String,
+    additions: List[RelatedIdentifier]
+  )(implicit
+    logContext: DoiLogContext
+  ): Future[DataciteDoi] = {
+    added.update(
+      doi.toLowerCase,
+      added.getOrElse(doi.toLowerCase, List.empty) ++ additions
+    )
     Future.successful(testDoi)
   }
 

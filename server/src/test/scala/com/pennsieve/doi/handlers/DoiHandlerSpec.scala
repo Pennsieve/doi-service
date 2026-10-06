@@ -40,7 +40,11 @@ import com.pennsieve.doi.models.{
   Title,
   Type
 }
-import com.pennsieve.doi.{ ServiceSpecHarness, TestUtilities }
+import com.pennsieve.doi.{
+  MockDataCiteClient,
+  ServiceSpecHarness,
+  TestUtilities
+}
 import com.pennsieve.test.AwaitableImplicits
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -603,6 +607,87 @@ class DoiHandlerSpec
 
       response shouldBe PublishDoiResponse.OK(expectedResponse)
       expectedResponse.publisher
+    }
+  }
+
+  "PUT /doi/:id/publish, of a dataset's next version" should {
+
+    def publishRequest(version: Int) =
+      com.pennsieve.doi.client.definitions.PublishDoiRequest(
+        title = "a dataset",
+        creators = Vector(CreatorDto("Cherilyn", "Sarkisian")),
+        publicationYear = 2026,
+        url = "https://www.url.com",
+        version = Some(version)
+      )
+
+    "link it to the previous published version, skipping drafts" in {
+      val organizationId = 31
+      val datasetId = 77
+      val versionPorts = getPorts(getConfig())
+      val mock = versionPorts.dataCiteClient.asInstanceOf[MockDataCiteClient]
+      val versionClient =
+        createClient(Route.seal(DoiHandler.routes(versionPorts)))
+
+      val v1 = TestUtilities.createDoi(ports.db)(organizationId, datasetId)
+      Thread.sleep(5)
+      val draft = TestUtilities.createDoi(ports.db)(organizationId, datasetId)
+      Thread.sleep(5)
+      val v2 = TestUtilities.createDoi(ports.db)(organizationId, datasetId)
+      mock.findable.put(v1.doi.toLowerCase, ())
+
+      val token: Jwt.Token =
+        generateServiceToken(
+          ports.jwt,
+          organizationId = organizationId,
+          datasetId = datasetId
+        )
+      val authToken = List(Authorization(OAuth2BearerToken(token.value)))
+
+      val response = versionClient
+        .publishDoi(v2.doi, publishRequest(2), authToken)
+        .awaitFinite()
+        .value
+      response shouldBe a[PublishDoiResponse.OK]
+
+      mock.added.get(v2.doi.toLowerCase) shouldBe Some(
+        List(
+          RelatedIdentifier(v1.doi, relationType = RelationType.IsNewVersionOf)
+        )
+      )
+      mock.added.get(v1.doi.toLowerCase) shouldBe Some(
+        List(
+          RelatedIdentifier(
+            v2.doi,
+            relationType = RelationType.IsPreviousVersionOf
+          )
+        )
+      )
+      mock.added.get(draft.doi.toLowerCase) shouldBe None
+    }
+
+    "link nothing for a dataset's first version" in {
+      val organizationId = 32
+      val datasetId = 78
+      val versionPorts = getPorts(getConfig())
+      val mock = versionPorts.dataCiteClient.asInstanceOf[MockDataCiteClient]
+      val versionClient =
+        createClient(Route.seal(DoiHandler.routes(versionPorts)))
+
+      val v1 = TestUtilities.createDoi(ports.db)(organizationId, datasetId)
+      val token: Jwt.Token =
+        generateServiceToken(
+          ports.jwt,
+          organizationId = organizationId,
+          datasetId = datasetId
+        )
+      val authToken = List(Authorization(OAuth2BearerToken(token.value)))
+
+      versionClient
+        .publishDoi(v1.doi, publishRequest(1), authToken)
+        .awaitFinite()
+        .value shouldBe a[PublishDoiResponse.OK]
+      mock.added shouldBe empty
     }
   }
 

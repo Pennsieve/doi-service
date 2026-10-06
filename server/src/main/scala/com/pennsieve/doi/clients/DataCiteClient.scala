@@ -101,6 +101,43 @@ trait DataCiteClient {
     logContext: DoiLogContext
   ): Future[DataciteDoi]
 
+  /**
+    * Adds related identifiers to a DOI, keeping the ones it has.
+    */
+  def addRelatedIdentifiers(
+    doi: String,
+    additions: List[RelatedIdentifier]
+  )(implicit
+    logContext: DoiLogContext
+  ): Future[DataciteDoi]
+
+}
+
+object DataCiteClient {
+
+  /**
+    * existing plus the additions it doesn't have yet (DOIs compared without
+    * case).
+    */
+  def merge(
+    existing: List[RelatedIdentifier],
+    additions: List[RelatedIdentifier]
+  ): List[RelatedIdentifier] =
+    additions.foldLeft(existing) { (all, add) =>
+      if (all.exists(
+          r =>
+            r.relationType == add.relationType && r.relatedIdentifier
+              .equalsIgnoreCase(add.relatedIdentifier)
+        )) all
+      else all :+ add
+    }
+
+  /**
+    * The version links among a DOI's related identifiers: doi-service adds
+    * them when a version is published, and a revision keeps them.
+    */
+  def versionLinks(existing: List[RelatedIdentifier]): List[RelatedIdentifier] =
+    existing.filter(r => RelationType.versionLinks.contains(r.relationType))
 }
 
 class DataCiteClientImpl(
@@ -339,10 +376,18 @@ class DataCiteClientImpl(
             rightsList = Some(licenses.getOrElse(List[LicenseDto]()).map { l =>
               Rights(l.license, Some(l.licenseUri))
             }),
+            // The external publications, as given, and the version links
+            // doi-service added when versions were published.
             relatedIdentifiers = Some(
-              externalPublications
-                .getOrElse(List.empty)
-                .map(ep => externalPublicationToRelatedIdentifier(ep))
+              DataCiteClient.merge(
+                externalPublications
+                  .getOrElse(List.empty)
+                  .map(ep => externalPublicationToRelatedIdentifier(ep)),
+                DataCiteClient.versionLinks(
+                  dataciteDoi.data.attributes.relatedIdentifiers
+                    .getOrElse(List.empty)
+                )
+              )
             ),
             updated = updated.map(_.toString())
           )
@@ -429,6 +474,49 @@ class DataCiteClientImpl(
               Future.failed(e)
           }
       )
+
+  override def addRelatedIdentifiers(
+    doi: String,
+    additions: List[RelatedIdentifier]
+  )(implicit
+    logContext: DoiLogContext
+  ): Future[DataciteDoi] =
+    for {
+      dataciteDoi <- getDoi(doi)
+      existing = dataciteDoi.data.attributes.relatedIdentifiers
+        .getOrElse(List.empty)
+      merged = DataCiteClient.merge(existing, additions)
+      updated <- if (merged == existing) Future.successful(dataciteDoi)
+      else {
+        val body = dataciteDoi
+          .lens(_.data.attributes)
+          .modify(
+            _.copy(
+              relatedIdentifiers = Some(merged),
+              event = None,
+              mode = Some("edit")
+            )
+          )
+        log.info(s"Adding related identifiers to $doi: ${additions.asJson.noSpaces}")
+        httpClient
+          .singleRequest(
+            HttpRequest(
+              method = HttpMethods.PATCH,
+              uri = s"${dataCiteClientConfig.apiUrl}/dois/$doi",
+              entity = HttpEntity(
+                MediaTypes.`application/vnd.api+json`,
+                body.asJson.noSpaces
+              ),
+              headers = List(Accept(MediaTypes.`application/json`), credentials)
+            )
+          )
+          .flatMap {
+            case HttpResponse(StatusCodes.OK, _, entity, _) =>
+              Unmarshal(entity).to[DataciteDoi]
+            case error => unmarshalError(error)
+          }
+      }
+    } yield updated
 
   private def externalPublicationToRelatedIdentifier(
     externalPublication: ExternalPublicationDto
