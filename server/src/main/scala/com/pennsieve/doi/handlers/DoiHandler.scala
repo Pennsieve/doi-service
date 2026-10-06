@@ -26,6 +26,7 @@ import com.pennsieve.doi.models.{
   DataciteDoi,
   Doi,
   DoiDTO,
+  DoiMetadata,
   DoiState,
   RelatedIdentifier,
   RelationType
@@ -218,7 +219,17 @@ class DoiHandler(
                 licenses = body.licenses.map(_.toList),
                 owner = body.owner,
                 collections = body.collections.map(_.toList),
-                externalPublications = body.externalPublications.map(_.toList)
+                externalPublications = body.externalPublications.map(_.toList),
+                metadata = withWorkspace(
+                  internalDoi.organizationId,
+                  DoiMetadata(
+                    keywords = body.keywords.map(_.toList),
+                    size = body.size,
+                    fileCount = body.fileCount,
+                    publishedAt = body.publishedAt,
+                    availableAt = body.availableAt
+                  )
+                )
               )
               .flatMap { publishedDoi =>
                 ports.log.info(
@@ -322,7 +333,16 @@ class DoiHandler(
               owner = body.owner,
               collections = body.collections.map(_.toList),
               externalPublications = body.externalPublications.map(_.toList),
-              updated = Some(now)
+              updated = Some(now),
+              metadata = withWorkspace(
+                internalDoi.organizationId,
+                DoiMetadata(
+                  keywords = body.keywords.map(_.toList),
+                  size = body.size,
+                  fileCount = body.fileCount,
+                  revisedAt = body.revisedAt.orElse(Some(now))
+                )
+              )
             )
         }
       }
@@ -352,10 +372,15 @@ class DoiHandler(
       }
   }
 
-  /**
-    * Note: roles in JWT do not matter for this endpoint, only that the JWT is
-    * valid.
-    */
+  /** metadata with the fields of science and subjects of the DOI's workspace. */
+  def withWorkspace(organizationId: Int, metadata: DoiMetadata): DoiMetadata = {
+    val workspace = ports.workspaces.forWorkspace(organizationId)
+    metadata.copy(
+      fieldsOfScience = workspace.fieldsOfScience,
+      workspaceSubjects = workspace.subjects
+    )
+  }
+
   /**
     * Links a newly published version's DOI to the dataset's previous
     * published version: IsNewVersionOf on the new one, IsPreviousVersionOf on
@@ -432,6 +457,10 @@ class DoiHandler(
           }
     }
 
+  /**
+    * Note: roles in JWT do not matter for this endpoint, only that the JWT is
+    * valid.
+    */
   def getCitations(
     respond: GuardrailResource.GetCitationsResponse.type
   )(

@@ -691,6 +691,86 @@ class DoiHandlerSpec
     }
   }
 
+  "PUT /doi/:id/publish and revise, with dataset metadata" should {
+
+    "pass the version's keywords, size, files and dates to DataCite" in {
+      val organizationId = 33
+      val datasetId = 79
+      val metadataPorts = getPorts(getConfig())
+      val mock = metadataPorts.dataCiteClient.asInstanceOf[MockDataCiteClient]
+      val metadataClient =
+        createClient(Route.seal(DoiHandler.routes(metadataPorts)))
+      val doi = TestUtilities.createDoi(ports.db)(organizationId, datasetId)
+      val token: Jwt.Token =
+        generateServiceToken(
+          ports.jwt,
+          organizationId = organizationId,
+          datasetId = datasetId
+        )
+      val authToken = List(Authorization(OAuth2BearerToken(token.value)))
+      val published = OffsetDateTime.parse("2026-05-06T22:05:52Z")
+
+      metadataClient
+        .publishDoi(
+          doi.doi,
+          com.pennsieve.doi.client.definitions.PublishDoiRequest(
+            title = "a dataset",
+            creators = Vector(CreatorDto("Cherilyn", "Sarkisian")),
+            publicationYear = 2026,
+            url = "https://www.url.com",
+            keywords = Some(Vector("vagus nerve", "microct")),
+            size = Some(3216756367026L),
+            fileCount = Some(1355),
+            publishedAt = Some(published)
+          ),
+          authToken
+        )
+        .awaitFinite()
+        .value shouldBe a[PublishDoiResponse.OK]
+
+      val metadata = mock.metadata(doi.doi.toLowerCase)
+      metadata.keywords shouldBe Some(List("vagus nerve", "microct"))
+      metadata.sizes shouldBe Some(List("3.2 TB", "1,355 files"))
+      metadata.publishedAt shouldBe Some(published)
+      metadata.fieldsOfScience shouldBe List("Basic medicine")
+    }
+
+    "date a revision now, keeping what isn't sent" in {
+      val organizationId = 34
+      val datasetId = 80
+      val metadataPorts = getPorts(getConfig())
+      val mock = metadataPorts.dataCiteClient.asInstanceOf[MockDataCiteClient]
+      val metadataClient =
+        createClient(Route.seal(DoiHandler.routes(metadataPorts)))
+      val doi = TestUtilities.createDoi(ports.db)(organizationId, datasetId)
+      val token: Jwt.Token =
+        generateServiceToken(
+          ports.jwt,
+          organizationId = organizationId,
+          datasetId = datasetId
+        )
+      val authToken = List(Authorization(OAuth2BearerToken(token.value)))
+
+      metadataClient
+        .reviseDoi(
+          doi.doi,
+          com.pennsieve.doi.client.definitions.ReviseDoiRequest(
+            title = "a revised dataset",
+            creators = Vector(CreatorDto("Cherilyn", "Sarkisian"))
+          ),
+          authToken
+        )
+        .awaitFinite()
+        .value shouldBe a[ReviseDoiResponse.OK]
+
+      val metadata = mock.metadata(doi.doi.toLowerCase)
+      metadata.revisedAt shouldBe defined
+      metadata.keywords shouldBe None
+      metadata.sizes shouldBe None
+      metadata.fieldsOfScience shouldBe List("Basic medicine")
+    }
+  }
+
   "PUT /doi/:id/revise" should {
     "update a previously Findable DOI" in {
       val organizationId = 2
@@ -1258,7 +1338,9 @@ class DoiHandlerSpec
             event = None,
             mode = None,
             created = Some(created.toString()),
-            updated = Some(updated.toString())
+            updated = Some(updated.toString()),
+            subjects = Some(List.empty),
+            sizes = Some(List.empty)
           )
         )
       )

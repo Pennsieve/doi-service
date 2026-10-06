@@ -372,6 +372,23 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/CollectionDTO'
+      keywords:
+        type: array
+        description: The dataset's tags, as DataCite subjects. Left out, the DOI keeps its subjects.
+        items:
+          type: string
+      size:
+        type: integer
+        format: int64
+        description: The version's size in bytes, as a DataCite size.
+      fileCount:
+        type: integer
+        format: int32
+        description: The version's number of files, as a DataCite size.
+      revisedAt:
+        type: string
+        format: date-time
+        description: When the version was revised, as the DataCite Updated date (default now).
       externalPublications:
         type: array
         items:
@@ -418,6 +435,27 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/CollectionDTO'
+      keywords:
+        type: array
+        description: The dataset's tags, as DataCite subjects. Left out, the DOI keeps its subjects.
+        items:
+          type: string
+      size:
+        type: integer
+        format: int64
+        description: The version's size in bytes, as a DataCite size.
+      fileCount:
+        type: integer
+        format: int32
+        description: The version's number of files, as a DataCite size.
+      publishedAt:
+        type: string
+        format: date-time
+        description: When the version was published, as the DataCite Issued date (default the publication year).
+      availableAt:
+        type: string
+        format: date-time
+        description: When an embargoed version became public, as the DataCite Available date.
       externalPublications:
         type: array
         items:

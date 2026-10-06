@@ -11,7 +11,8 @@ case class Config(
   postgres: PostgresConfiguration,
   dataCite: DataCiteClientConfiguration,
   jwt: JwtConfig,
-  citation: CitationClientConfiguration
+  citation: CitationClientConfiguration,
+  environment: Option[String] = None
 )
 
 case class PostgresConfiguration(
