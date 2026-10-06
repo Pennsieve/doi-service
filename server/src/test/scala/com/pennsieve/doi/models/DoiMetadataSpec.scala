@@ -26,7 +26,7 @@ class DoiMetadataSpec extends AnyWordSpec with Matchers {
 
   "subjects" should {
     "be the keywords, trimmed and without duplicates" in {
-      DoiMetadata(keywords = Some(List(" vagus nerve", "microct", "", "microct"))).subjects shouldBe
+      DoiMetadata(keywords = Some(List(" vagus nerve", "microct", "", "microct", "MicroCT"))).subjects shouldBe
         Some(List(Subject("vagus nerve"), Subject("microct")))
     }
 
@@ -45,6 +45,59 @@ class DoiMetadataSpec extends AnyWordSpec with Matchers {
       DoiMetadata(keywords = Some(List("vagus nerve"))).revisedSubjects(existing) shouldBe
         Some(List(fos, Subject("vagus nerve")))
       DoiMetadata().revisedSubjects(existing) shouldBe existing
+    }
+
+    "start with the fields of science, then the workspace's subjects and keywords" in {
+      DoiMetadata(
+        keywords = Some(List("EEG", "neuroscience")),
+        fieldsOfScience = List("Clinical medicine", "Basic medicine"),
+        workspaceSubjects = List("Neuroscience")
+      ).subjects shouldBe Some(
+        List(
+          Subject.fieldOfScience("Clinical medicine"),
+          Subject.fieldOfScience("Basic medicine"),
+          Subject("Neuroscience"),
+          Subject("EEG")
+        )
+      )
+      DoiMetadata(fieldsOfScience = List("Basic medicine")).subjects shouldBe
+        Some(List(Subject.fieldOfScience("Basic medicine")))
+    }
+
+    "name fields of science as DataCite does" in {
+      Subject.fieldOfScience("Basic medicine") shouldBe Subject(
+        "FOS: Basic medicine",
+        subjectScheme = Some("Fields of Science and Technology (FOS)"),
+        schemeUri = Some("http://www.oecd.org/science/inno/38235147.pdf")
+      )
+    }
+
+    "on revision, replace fields of science and add the workspace's subjects" in {
+      val mesh = Subject("Epilepsy", subjectScheme = Some("MeSH"))
+      val existing = Some(
+        List(
+          Subject("old tag"),
+          Subject.fieldOfScience("Biological sciences"),
+          mesh
+        )
+      )
+      DoiMetadata(
+        fieldsOfScience = List("Clinical medicine"),
+        workspaceSubjects = List("Neuroscience")
+      ).revisedSubjects(existing) shouldBe Some(
+        List(
+          Subject.fieldOfScience("Clinical medicine"),
+          mesh,
+          Subject("Neuroscience"),
+          Subject("old tag")
+        )
+      )
+      DoiMetadata(
+        keywords = Some(List("new tag")),
+        fieldsOfScience = List("Clinical medicine")
+      ).revisedSubjects(existing) shouldBe Some(
+        List(Subject.fieldOfScience("Clinical medicine"), mesh, Subject("new tag"))
+      )
     }
 
     "read and write every part of a subject" in {

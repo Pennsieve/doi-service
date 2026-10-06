@@ -57,6 +57,9 @@ class Ports(
   val dataCiteClient: DataCiteClient =
     new DataCiteClientImpl(Http(), config.dataCite)
 
+  val workspaces: WorkspaceDoiConfig =
+    WorkspaceDoiConfig.load(config.environment)
+
   val citationClient: CitationClient =
     new CitationClientImpl(Http(), config.citation)
 

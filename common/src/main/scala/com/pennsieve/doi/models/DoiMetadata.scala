@@ -8,8 +8,9 @@ import java.util.Locale
 
 /**
   * What DataCite shows about a published dataset version beyond its title,
-  * creators and licence: subjects (the dataset's tags), sizes, and the dates
-  * it was issued, made available (after an embargo) and last revised.
+  * creators and licence: subjects (the workspace's fields of science and
+  * subjects, and the dataset's tags), sizes, and the dates it was issued,
+  * made available (after an embargo) and last revised.
   *
   * Every field is optional: one left out keeps what the DOI already has, so
   * callers that don't send them change nothing.
@@ -20,24 +21,56 @@ case class DoiMetadata(
   fileCount: Option[Int] = None,
   publishedAt: Option[OffsetDateTime] = None,
   availableAt: Option[OffsetDateTime] = None,
-  revisedAt: Option[OffsetDateTime] = None
+  revisedAt: Option[OffsetDateTime] = None,
+  fieldsOfScience: List[String] = List.empty,
+  workspaceSubjects: List[String] = List.empty
 ) {
 
-  /** The keywords as free-text subjects, trimmed, without duplicates. */
+  /**
+    * The fields of science, then the workspace's subjects and the keywords
+    * as free-text subjects: trimmed, without duplicates (ignoring case). None
+    * when there are none of these to set.
+    */
   def subjects: Option[List[Subject]] =
-    keywords.map(_.map(_.trim).filter(_.nonEmpty).distinct.map(Subject(_)))
+    if (fieldsOfScience.isEmpty && workspaceSubjects.isEmpty)
+      keywords.map(DoiMetadata.freeText)
+    else
+      Some(
+        fieldsOfScienceSubjects ++ DoiMetadata.freeText(
+          workspaceSubjects ++ keywords.getOrElse(List.empty)
+        )
+      )
 
   /**
-    * A revised DOI's subjects: the keywords replace its free-text subjects,
-    * and its vocabulary terms (with a subjectScheme) stay. Without keywords
+    * A revised DOI's subjects. Fields of science, when given, replace the
+    * DOI's; keywords replace its free-text subjects; the workspace's subjects
+    * are added; terms from other vocabularies stay. With none of these given
     * it keeps them all.
     */
   def revisedSubjects(existing: Option[List[Subject]]): Option[List[Subject]] =
-    subjects match {
-      case None => existing
-      case Some(keywords) =>
-        Some(existing.getOrElse(List.empty).filter(_.subjectScheme.isDefined) ++ keywords)
+    if (keywords.isEmpty && fieldsOfScience.isEmpty && workspaceSubjects.isEmpty)
+      existing
+    else {
+      val current = existing.getOrElse(List.empty)
+      val fos =
+        if (fieldsOfScience.isEmpty) current.filter(_.isFieldOfScience)
+        else fieldsOfScienceSubjects
+      val vocabulary =
+        current.filter(s => s.subjectScheme.isDefined && !s.isFieldOfScience)
+      val freeText = keywords.getOrElse(
+        current.filter(_.subjectScheme.isEmpty).map(_.subject)
+      )
+      Some(
+        fos ++ vocabulary ++ DoiMetadata.freeText(workspaceSubjects ++ freeText)
+      )
     }
+
+  private def fieldsOfScienceSubjects: List[Subject] =
+    fieldsOfScience
+      .map(_.trim)
+      .filter(_.nonEmpty)
+      .distinct
+      .map(Subject.fieldOfScience)
 
   /** For example "3.2 TB" and "1,355 files". */
   def sizes: Option[List[String]] =
@@ -63,6 +96,16 @@ case class DoiMetadata(
 }
 
 object DoiMetadata {
+
+  /** Free-text subjects, trimmed, keeping the first of terms that differ only in case. */
+  def freeText(terms: List[String]): List[Subject] =
+    terms
+      .map(_.trim)
+      .filter(_.nonEmpty)
+      .foldLeft(List.empty[String]) { (kept, term) =>
+        if (kept.exists(_.equalsIgnoreCase(term))) kept else kept :+ term
+      }
+      .map(Subject(_))
 
   /** The UTC day, YYYY-MM-DD. */
   def day(t: OffsetDateTime): String =

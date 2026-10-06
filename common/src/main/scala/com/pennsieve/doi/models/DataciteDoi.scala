@@ -172,8 +172,22 @@ case class Subject(
   valueUri: Option[String] = None,
   classificationCode: Option[String] = None,
   lang: Option[String] = None
-)
+) {
+  def isFieldOfScience: Boolean =
+    subjectScheme.contains(Subject.FieldsOfScienceScheme)
+}
 object Subject {
+  val FieldsOfScienceScheme = "Fields of Science and Technology (FOS)"
+  val FieldsOfScienceUri = "http://www.oecd.org/science/inno/38235147.pdf"
+
+  /** A field of science as DataCite names it, e.g. "FOS: Basic medicine". */
+  def fieldOfScience(name: String): Subject =
+    Subject(
+      s"FOS: $name",
+      subjectScheme = Some(FieldsOfScienceScheme),
+      schemeUri = Some(FieldsOfScienceUri)
+    )
+
   implicit val decoder: Decoder[Subject] = deriveDecoder
   implicit val encoder: Encoder[Subject] =
     deriveEncoder[Subject].mapJson(_.dropNullValues)

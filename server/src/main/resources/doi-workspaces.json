@@ -1,0 +1,34 @@
+{
+  "default": {
+    "fieldsOfScience": ["Basic medicine"]
+  },
+  "prod": {
+    "367": {
+      "name": "SPARC",
+      "fieldsOfScience": ["Basic medicine", "Biological sciences", "Medical biotechnology"]
+    },
+    "661": {
+      "name": "RE-JOIN",
+      "fieldsOfScience": ["Biological sciences"]
+    },
+    "666": {
+      "name": "NIH PRECISION Human Pain Network",
+      "fieldsOfScience": ["Biological sciences"]
+    },
+    "668": {
+      "name": "Epilepsy.Science",
+      "fieldsOfScience": ["Clinical medicine", "Basic medicine"],
+      "subjects": ["Neuroscience"]
+    }
+  },
+  "dev": {
+    "28": {
+      "name": "SPARC",
+      "fieldsOfScience": ["Basic medicine", "Biological sciences", "Medical biotechnology"]
+    },
+    "42": {
+      "name": "RE-JOIN",
+      "fieldsOfScience": ["Biological sciences"]
+    }
+  }
+}

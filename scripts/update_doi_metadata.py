@@ -3,7 +3,9 @@
 
 For every published dataset version, from Discover's public API, the DOI gets:
 
-  - subjects: the dataset's tags (other subjects are kept);
+  - subjects: its workspace's fields of science (replacing any it has) and
+    subjects, from doi-workspaces.json for --env, and the dataset's tags;
+    other subjects are kept;
   - sizes: the version's size and file count, e.g. "3.2 TB", "1,355 files";
   - dates: Issued (the version's publication day), Available (when an embargo
     ended) and Updated (the last revision), replacing those types and keeping
@@ -21,7 +23,7 @@ doi-service's DataCite repository (DATACITE_USERNAME, DATACITE_PASSWORD).
     ./update_doi_metadata.py --dataset 514
     ./update_doi_metadata.py --all
 Dev (DataCite's test system):
-    ./update_doi_metadata.py --datacite https://api.test.datacite.org \\
+    ./update_doi_metadata.py --env dev --datacite https://api.test.datacite.org \\
         --discover https://api.pennsieve.net/discover --prefix 10.21397 --dataset 5347
 """
 import argparse
@@ -35,6 +37,10 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
+FOS_SCHEME = "Fields of Science and Technology (FOS)"
+FOS_URI = "http://www.oecd.org/science/inno/38235147.pdf"
+WORKSPACES = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                          "..", "server", "src", "main", "resources", "doi-workspaces.json")
 SPDX = re.compile(r"^https?://spdx\.org/licenses/(.+?)(?:\.json|\.html)?$")
 UNITS = ["bytes", "kB", "MB", "GB", "TB", "PB"]
 
@@ -74,19 +80,51 @@ def day(timestamp):
     return timestamp[:10] if timestamp else None
 
 
-def wanted(version, attributes):
-    """The attributes to change, from Discover's version and DataCite's record."""
+def load_workspaces(path, env):
+    """A function from organization id to its settings, as doi-service reads them."""
+    with open(path) as f:
+        config = json.load(f)
+    default = config["default"]
+    workspaces = config.get(env) or {}
+
+    def settings(organization_id):
+        s = workspaces.get(str(organization_id), default)
+        return {"fieldsOfScience": s.get("fieldsOfScience") or default.get("fieldsOfScience") or [],
+                "subjects": s.get("subjects") or []}
+    return settings
+
+
+def is_fos(subject):
+    return subject.get("subjectScheme") == FOS_SCHEME
+
+
+def subjects_wanted(existing, workspace, tags):
+    """As doi-service revises them: the workspace's fields of science replace
+    the DOI's, other vocabulary terms stay, and free-text subjects are the
+    DOI's, the workspace's and the tags, without duplicates (ignoring case)."""
+    fos = [{"subject": f"FOS: {name}", "subjectScheme": FOS_SCHEME, "schemeUri": FOS_URI}
+           for name in dict.fromkeys(n.strip() for n in workspace["fieldsOfScience"] if n.strip())]
+    if not fos:
+        fos = [s for s in existing if is_fos(s)]
+    vocabulary = [s for s in existing if s.get("subjectScheme") and not is_fos(s)]
+    free = []
+    terms = [s["subject"] for s in existing if not s.get("subjectScheme")] + workspace["subjects"] + tags
+    for t in terms:
+        t = (t or "").strip()
+        if t and not any(t.lower() == k.lower() for k in free):
+            free.append(t)
+    return fos + vocabulary + [{"subject": t} for t in free]
+
+
+def wanted(version, attributes, workspace):
+    """The attributes to change, from Discover's version, its workspace's
+    settings and DataCite's record."""
     changes = {}
 
     subjects = attributes.get("subjects") or []
-    have = {s.get("subject") for s in subjects}
-    tags = []
-    for t in version.get("tags") or []:
-        t = t.strip()
-        if t and t not in have and t not in tags:
-            tags.append(t)
-    if tags:
-        changes["subjects"] = subjects + [{"subject": t} for t in tags]
+    merged_subjects = subjects_wanted(subjects, workspace, version.get("tags") or [])
+    if merged_subjects != subjects:
+        changes["subjects"] = merged_subjects
 
     sizes = []
     if version.get("size") is not None:
@@ -137,7 +175,7 @@ def all_datasets(discover):
             return
 
 
-def update_dataset(datacite, discover, prefix, dataset_id, auth, apply):
+def update_dataset(datacite, discover, prefix, dataset_id, auth, apply, workspaces):
     changed = 0
     for version in versions(discover, dataset_id):
         doi = (version.get("doi") or "").lower()
@@ -148,7 +186,7 @@ def update_dataset(datacite, discover, prefix, dataset_id, auth, apply):
         if status != 200 or body["data"]["attributes"].get("state") != "findable":
             print(f"  dataset {dataset_id} v{version['version']} {doi}: not findable at DataCite, skipped")
             continue
-        changes = wanted(version, body["data"]["attributes"])
+        changes = wanted(version, body["data"]["attributes"], workspaces(version["organizationId"]))
         if not changes:
             continue
         changed += 1
@@ -170,6 +208,8 @@ def main():
     p.add_argument("--datacite", default="https://api.datacite.org")
     p.add_argument("--discover", default="https://api.pennsieve.io/discover")
     p.add_argument("--prefix", default="10.26275", help="our DOI prefix (dev: 10.21397)")
+    p.add_argument("--env", default="prod", choices=["prod", "dev"], help="the workspaces in doi-workspaces.json")
+    p.add_argument("--workspaces", default=WORKSPACES, help="doi-workspaces.json")
     args = p.parse_args()
 
     auth = None
@@ -179,11 +219,13 @@ def main():
             sys.exit("--apply needs DATACITE_USERNAME and DATACITE_PASSWORD")
         auth = f"{user}:{password}"
 
+    workspaces = load_workspaces(args.workspaces, args.env)
     ids = args.dataset or list(all_datasets(args.discover))
     print(f"{'Updating' if args.apply else 'Dry run:'} {len(ids)} dataset(s)")
     total = 0
     for dataset_id in ids:
-        total += update_dataset(args.datacite, args.discover, args.prefix.rstrip("/") + "/", dataset_id, auth, args.apply)
+        total += update_dataset(args.datacite, args.discover, args.prefix.rstrip("/") + "/", dataset_id, auth, args.apply,
+                                workspaces)
     print(f"{total} DOI(s) {'updated' if args.apply else 'to update'}")
 
 

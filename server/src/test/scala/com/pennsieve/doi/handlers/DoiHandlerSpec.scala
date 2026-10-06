@@ -732,6 +732,7 @@ class DoiHandlerSpec
       metadata.keywords shouldBe Some(List("vagus nerve", "microct"))
       metadata.sizes shouldBe Some(List("3.2 TB", "1,355 files"))
       metadata.publishedAt shouldBe Some(published)
+      metadata.fieldsOfScience shouldBe List("Basic medicine")
     }
 
     "date a revision now, keeping what isn't sent" in {
@@ -766,6 +767,7 @@ class DoiHandlerSpec
       metadata.revisedAt shouldBe defined
       metadata.keywords shouldBe None
       metadata.sizes shouldBe None
+      metadata.fieldsOfScience shouldBe List("Basic medicine")
     }
   }
 
