@@ -1,4 +1,4 @@
-// Copyright (c) 2026 University of Pennsylvania. All Rights Reserved.
+// Copyright (c) 2021 University of Pennsylvania. All Rights Reserved.
 
 package com.pennsieve.doi
 

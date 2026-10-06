@@ -140,7 +140,7 @@ case class Rights(
 object Rights {
   implicit val decoder: Decoder[Rights] = deriveDecoder
   implicit val encoder: Encoder[Rights] =
-    deriveEncoder[Rights].mapJson(_.dropNullValues)
+    deriveEncoder[Rights].mapJson(_.mapObject(_.filter { case (_, v) => !v.isNull }))
 
   private val spdxUrl = "^https?://spdx\\.org/licenses/(.+?)(?:\\.json|\\.html)?$".r
 
@@ -190,7 +190,7 @@ object Subject {
 
   implicit val decoder: Decoder[Subject] = deriveDecoder
   implicit val encoder: Encoder[Subject] =
-    deriveEncoder[Subject].mapJson(_.dropNullValues)
+    deriveEncoder[Subject].mapJson(_.mapObject(_.filter { case (_, v) => !v.isNull }))
 }
 
 case class Title(title: String)
