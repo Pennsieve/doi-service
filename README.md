@@ -2,6 +2,10 @@
 
 A service to create, manage, and publish DataCite DOIs. See https://support.datacite.org/docs/api for full DataCite API documentation.
 
+## CI
+
+Jenkins (https://jenkins.pennsieve.cc) runs the tests on every PR. A merge to `main` also publishes the `common` and `client` jars to Nexus, pushes `pennsieve/doi-service`, and deploys it to dev.
+
 ## Testing
 
 Run the unit tests with
