@@ -253,21 +253,11 @@ lazy val server = project
           chown = "pennsieve:pennsieve"
         )
         addRaw(
-          "http://download.newrelic.com/newrelic/java-agent/newrelic-agent/current/newrelic.jar",
-          "/app/newrelic.jar"
-        )
-        addRaw(
-          "http://download.newrelic.com/newrelic/java-agent/newrelic-agent/current/newrelic.yml",
-          "/app/newrelic.yml"
-        )
-        addRaw(
           "https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem",
           CA_CERT_LOCATION,
         )
         user("root")
         run("chmod", "+r", CA_CERT_LOCATION)
-        run("chown", "pennsieve:pennsieve", "/app/newrelic.jar")
-        run("chown", "pennsieve:pennsieve", "/app/newrelic.yml")
         user("pennsieve")
         cmd(
           "--service",
