@@ -27,18 +27,3 @@ variable "datacite_api_url" {}
 variable "datacite_pennsieve_prefix" {}
 
 variable "ecs_task_iam_role_id" {}
-
-# Java Opts
-variable "newrelic_agent_enabled" {
-  default = "true"
-}
-
-locals {
-  java_opts = [
-    "-javaagent:/app/newrelic.jar",
-    "-Dnewrelic.config.agent_enabled=${var.newrelic_agent_enabled}",
-  ]
-
-  service = element(split("-", var.service_name), 0)
-  tier    = element(split("-", var.service_name), 1)
-}
