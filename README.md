@@ -4,7 +4,7 @@ A service to create, manage, and publish DataCite DOIs. See https://support.data
 
 ## CI
 
-Jenkins (https://jenkins.pennsieve.cc) runs the tests on every PR. A merge to `main` also publishes the `common` and `client` jars to Nexus, pushes `pennsieve/doi-service`, and deploys it to dev.
+Jenkins (https://jenkins.pennsieve.cc) runs the tests on every PR. A merge to `main` also publishes the `common` and `client` jars to Pennsieve's AWS CodeArtifact, pushes `pennsieve/doi-service`, and deploys it to dev.
 
 ## Testing
 
@@ -19,4 +19,4 @@ There is an integration test suite that runs against the DataCite sandbox API us
 
 ## Releasing
 
-Every merge to `main` pushes a new version of `doi-service-client` to Nexus. The published JAR is versioned with the same Jenkins image tag as the service Docker container.
+Every merge to `main` pushes a new version of `doi-service-client` to Pennsieve's AWS CodeArtifact. The published JAR is versioned with the same Jenkins image tag as the service Docker container.
