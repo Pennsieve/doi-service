@@ -255,7 +255,7 @@ lazy val server = project
       val CA_CERT_LOCATION = "/home/pennsieve/.postgresql/root.crt"
 
       new Dockerfile {
-        from("pennsieve/java-cloudwrap:21-jre-alpine-f67da69")
+        from("pennsieve/java-cloudwrap:21-jre-alpine-035617f")
         copy(artifact, artifactTargetPath, chown = "pennsieve:pennsieve")
         copy(
           baseDirectory.value / "bin" / "run.sh",
