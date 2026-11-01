@@ -18,7 +18,8 @@ import com.pennsieve.doi.models.{
   RelatedIdentifier,
   RelationType,
   Rights,
-  Title
+  Title,
+  Type => DoiType
 }
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.{
@@ -120,6 +121,16 @@ trait DataCiteClient {
 object DataCiteClient {
 
   /**
+    * A creator as DataCite takes it: a person by given and family name (with
+    * ORCID), or, with nameType Organizational, an organisation by its name
+    * whole.
+    */
+  def creator(c: CreatorDto): Creator =
+    if (c.nameType.exists(_.equalsIgnoreCase(Creator.Organizational)))
+      Creator.organization(c.firstName)
+    else Creator(c.firstName, c.lastName, c.middleInitial, c.orcid)
+
+  /**
     * existing plus the additions it doesn't have yet (DOIs compared without
     * case).
     */
@@ -179,9 +190,7 @@ class DataCiteClientImpl(
     val doiRequestBody =
       DataciteDoi(
         fullDoi,
-        creators.map { c =>
-          Creator(c.firstName, c.lastName, c.middleInitial, c.orcid)
-        },
+        creators.map(DataCiteClient.creator),
         title,
         publicationYear,
         version,
@@ -269,9 +278,7 @@ class DataCiteClientImpl(
 
     val publishRequestBody = DataciteDoi(
       doi,
-      creators.map { c =>
-        Creator(c.firstName, c.lastName, c.middleInitial, c.orcid)
-      },
+      creators.map(DataCiteClient.creator),
       title,
       Some(publicationYear),
       version,
@@ -292,7 +299,9 @@ class DataCiteClientImpl(
       mode = "edit",
       subjects = metadata.subjects,
       sizes = metadata.sizes,
-      dates = Some(metadata.dates(List(DoiDate(publicationYear.toString))))
+      dates = Some(metadata.dates(List(DoiDate(publicationYear.toString)))),
+      resourceTypeGeneral = metadata.resourceTypeGeneral
+        .getOrElse(DataciteDoi.defaultDoiResourceType)
     )
 
     log.info(s"Publishing DOI: ${publishRequestBody.asJson.noSpaces}")
@@ -362,49 +371,52 @@ class DataCiteClientImpl(
         .lens(_.data.attributes)
         .modify(
           attributes =>
-          attributes.copy(
-            titles = List(Title(title)),
-            creators = creators.map { c =>
-              Creator(c.firstName, c.lastName, c.middleInitial, c.orcid)
-            },
-            descriptions = Some(descriptions),
-            version = version,
-            event = None,
-            mode = Some("edit"),
-            contributors = owner
-              .map(
-                o =>
-                  List(
-                    Contributor(
-                      o.firstName,
-                      o.lastName,
-                      o.middleInitial,
-                      o.orcid
+            attributes.copy(
+              titles = List(Title(title)),
+              creators = creators.map(DataCiteClient.creator),
+              types = metadata.resourceTypeGeneral
+                .map(DoiType(_))
+                .getOrElse(attributes.types),
+              descriptions = Some(descriptions),
+              version = version,
+              event = None,
+              mode = Some("edit"),
+              contributors = owner
+                .map(
+                  o =>
+                    List(
+                      Contributor(
+                        o.firstName,
+                        o.lastName,
+                        o.middleInitial,
+                        o.orcid
+                      )
                     )
-                  )
-              ),
-            rightsList = Some(licenses.getOrElse(List[LicenseDto]()).map { l =>
-              Rights.withSpdx(l.license, Some(l.licenseUri))
-            }),
-            // What isn't given is kept.
-            subjects = metadata.revisedSubjects(attributes.subjects),
-            sizes = metadata.sizes.orElse(attributes.sizes),
-            dates = Some(metadata.dates(attributes.dates.getOrElse(List.empty))),
-            // The external publications, as given, and the version links
-            // doi-service added when versions were published.
-            relatedIdentifiers = Some(
-              DataCiteClient.merge(
-                externalPublications
-                  .getOrElse(List.empty)
-                  .map(ep => externalPublicationToRelatedIdentifier(ep)),
-                DataCiteClient.versionLinks(
-                  dataciteDoi.data.attributes.relatedIdentifiers
+                ),
+              rightsList = Some(licenses.getOrElse(List[LicenseDto]()).map {
+                l =>
+                  Rights.withSpdx(l.license, Some(l.licenseUri))
+              }),
+              // What isn't given is kept.
+              subjects = metadata.revisedSubjects(attributes.subjects),
+              sizes = metadata.sizes.orElse(attributes.sizes),
+              dates =
+                Some(metadata.dates(attributes.dates.getOrElse(List.empty))),
+              // The external publications, as given, and the version links
+              // doi-service added when versions were published.
+              relatedIdentifiers = Some(
+                DataCiteClient.merge(
+                  externalPublications
                     .getOrElse(List.empty)
+                    .map(ep => externalPublicationToRelatedIdentifier(ep)),
+                  DataCiteClient.versionLinks(
+                    dataciteDoi.data.attributes.relatedIdentifiers
+                      .getOrElse(List.empty)
+                  )
                 )
-              )
-            ),
-            updated = updated.map(_.toString())
-          )
+              ),
+              updated = updated.map(_.toString())
+            )
         )
 
       _ = log.info(s"Updating DOI: ${body.asJson.noSpaces}")
@@ -511,7 +523,9 @@ class DataCiteClientImpl(
               mode = Some("edit")
             )
           )
-        log.info(s"Adding related identifiers to $doi: ${additions.asJson.noSpaces}")
+        log.info(
+          s"Adding related identifiers to $doi: ${additions.asJson.noSpaces}"
+        )
         httpClient
           .singleRequest(
             HttpRequest(

@@ -65,6 +65,15 @@ object Creator {
       orcid.map(o => List(NameIdentifier(o)))
     )
   }
+
+  val Organizational = "Organizational"
+
+  /**
+    * An organisation (a lab, a university, a project) as a creator: its name
+    * whole, no given or family name.
+    */
+  def organization(name: String): Creator =
+    Creator(None, None, Some(name.trim), None, Some(Organizational))
 }
 
 case class Contributor(
@@ -398,10 +407,11 @@ object DataciteDoi {
     mode: String = defaultMode,
     subjects: Option[List[Subject]] = None,
     sizes: Option[List[String]] = None,
-    dates: Option[List[DoiDate]] = None
+    dates: Option[List[DoiDate]] = None,
+    resourceTypeGeneral: String = defaultDoiResourceType
   ): DataciteDoi = {
     val doiTitles = List(Title(title))
-    val doiType = Type(defaultDoiResourceType)
+    val doiType = Type(resourceTypeGeneral)
     val doiDate = publicationYear.map(year => List(DoiDate(year.toString)))
     val defPublisher = publisher.getOrElse(defaultPublisher)
 

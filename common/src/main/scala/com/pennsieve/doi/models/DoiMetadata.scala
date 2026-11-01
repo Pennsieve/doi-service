@@ -23,7 +23,10 @@ case class DoiMetadata(
   availableAt: Option[OffsetDateTime] = None,
   revisedAt: Option[OffsetDateTime] = None,
   fieldsOfScience: List[String] = List.empty,
-  workspaceSubjects: List[String] = List.empty
+  workspaceSubjects: List[String] = List.empty,
+  // DataCite's resourceTypeGeneral (e.g. "Software" for a code release); left
+  // out, a published DOI is a Dataset and a revised one keeps its type.
+  resourceTypeGeneral: Option[String] = None
 ) {
 
   /**

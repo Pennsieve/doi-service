@@ -227,7 +227,8 @@ class DoiHandler(
                     size = body.size,
                     fileCount = body.fileCount,
                     publishedAt = body.publishedAt,
-                    availableAt = body.availableAt
+                    availableAt = body.availableAt,
+                    resourceTypeGeneral = body.resourceTypeGeneral
                   )
                 )
               )
@@ -340,7 +341,8 @@ class DoiHandler(
                   keywords = body.keywords.map(_.toList),
                   size = body.size,
                   fileCount = body.fileCount,
-                  revisedAt = body.revisedAt.orElse(Some(now))
+                  revisedAt = body.revisedAt.orElse(Some(now)),
+                  resourceTypeGeneral = body.resourceTypeGeneral
                 )
               )
             )
@@ -412,7 +414,9 @@ class DoiHandler(
       .flatMap {
         case None => Future.successful(())
         case Some(previous) =>
-          ports.log.info(s"Linking ${published.doi} to the previous version ${previous.doi}")
+          ports.log.info(
+            s"Linking ${published.doi} to the previous version ${previous.doi}"
+          )
           for {
             _ <- ports.dataCiteClient.addRelatedIdentifiers(
               published.doi,
@@ -436,7 +440,9 @@ class DoiHandler(
       }
       .recover {
         case NonFatal(e) =>
-          ports.log.error(s"Linking ${published.doi} to its previous version failed: $e")
+          ports.log.error(
+            s"Linking ${published.doi} to its previous version failed: $e"
+          )
       }
 
   private def previousFindable(
