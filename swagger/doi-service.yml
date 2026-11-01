@@ -389,6 +389,11 @@ definitions:
         type: string
         format: date-time
         description: When the version was revised, as the DataCite Updated date (default now).
+      resourceTypeGeneral:
+        type: string
+        description: >-
+          The DataCite resource type, e.g. Software for a code release. Left out,
+          a published DOI is a Dataset and a revised one keeps its type.
       externalPublications:
         type: array
         items:
@@ -456,6 +461,11 @@ definitions:
         type: string
         format: date-time
         description: When an embargoed version became public, as the DataCite Available date.
+      resourceTypeGeneral:
+        type: string
+        description: >-
+          The DataCite resource type, e.g. Software for a code release. Left out,
+          a published DOI is a Dataset and a revised one keeps its type.
       externalPublications:
         type: array
         items:
@@ -476,6 +486,11 @@ definitions:
         type: string
       orcid:
         type: string
+      nameType:
+        type: string
+        description: >-
+          Personal (the default) or Organizational: an organisation, named by
+          firstName whole (lastName, middleInitial and orcid are not used).
 
   LicenseDTO:
     type: object
